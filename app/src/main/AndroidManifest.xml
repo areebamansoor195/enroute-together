@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".AppClass"
@@ -47,7 +48,9 @@
         <activity android:name=".Offer_PassengersList" />
         <activity android:name=".Offer_PassengerDetails" />
         <activity android:name=".Book_FareEstimate" />
-        <activity android:name=".ManageProfile" />
+        <activity
+            android:name=".ManageProfile"
+            android:label="Manage Profile" />
         <activity android:name=".Offer_BillActivity" />
         <activity android:name=".HelpActivity"></activity>
     </application>
