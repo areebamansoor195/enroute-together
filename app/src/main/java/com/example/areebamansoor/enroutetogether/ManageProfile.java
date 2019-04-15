@@ -68,8 +68,12 @@ public class ManageProfile extends AppCompatActivity {
         if (user.getPhone_number() != null)
             binding.etNumber.setText(user.getPhone_number());
 
+
         if (user.getImage_url() != null)
-            Picasso.get().load(user.getImage_url()).into(binding.profileImage);
+            Picasso.get()
+                    .load(user.getImage_url())
+                    .placeholder(R.drawable.icon2)
+                    .into(binding.profileImage);
 
 
         if (user.getGender().equalsIgnoreCase("Male"))

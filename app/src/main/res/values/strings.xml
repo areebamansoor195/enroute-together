@@ -24,5 +24,7 @@
     <string name="title_activity_offer__start_ride">Map</string>
     <string name="title_activity_offer__end_ride">Map</string>
     <string name="don_t_have_account_register">Don\'t have an account? <u>Sign Up</u></string>
+    <string name="title_activity_book_ride">Map</string>
+    <string name="title_activity_offer_ride">Map</string>
 
 </resources>

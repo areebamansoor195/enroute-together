@@ -2,9 +2,7 @@ package com.example.areebamansoor.enroutetogether;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -42,7 +40,7 @@ public class Gen_HomeActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 //                Intent intent = new Intent(Gen_HomeActivity.this, Offer_OfferRide.class);
-                Intent intent = new Intent(Gen_HomeActivity.this, MapsActivity.class);
+                Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
                 intent.putExtra("map", "offer_ride");
                 startActivity(intent);
                 Toast.makeText(Gen_HomeActivity.this, "Offer Ride", Toast.LENGTH_SHORT).show();
@@ -53,7 +51,7 @@ public class Gen_HomeActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 //                Intent intent = new Intent(Gen_HomeActivity.this, Book_DriversList.class);
-                Intent intent = new Intent(Gen_HomeActivity.this, MapsActivity.class);
+                Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
                 intent.putExtra("map", "book_ride");
                 startActivity(intent);
                 Toast.makeText(Gen_HomeActivity.this, "Book Ride", Toast.LENGTH_SHORT).show();
@@ -81,15 +79,6 @@ public class Gen_HomeActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -142,6 +131,8 @@ public class Gen_HomeActivity extends AppCompatActivity
         if (id == R.id.home) {
             // Handle the camera action
         } else if (id == R.id.manage_profile) {
+
+            startActivity(new Intent(this, ManageProfile.class));
 
         } else if (id == R.id.action_settings) {
 
