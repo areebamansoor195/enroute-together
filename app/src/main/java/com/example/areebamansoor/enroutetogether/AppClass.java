@@ -1,9 +1,9 @@
 package com.example.areebamansoor.enroutetogether;
 
-import android.app.Application;
 import android.content.Context;
+import android.support.multidex.MultiDexApplication;
 
-public class AppClass extends Application {
+public class AppClass extends MultiDexApplication {
 
     public static AppClass instance;
 

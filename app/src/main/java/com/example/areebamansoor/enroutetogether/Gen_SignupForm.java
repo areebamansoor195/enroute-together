@@ -1,9 +1,9 @@
 package com.example.areebamansoor.enroutetogether;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -23,15 +23,24 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.areebamansoor.enroutetogether.utils.Constants.USERS;
+
 public class Gen_SignupForm extends AppCompatActivity {
 
+    private long user_id = 0;
     private ActivityGenSignupformBinding binding;
     private String gender = "";
+    private ProgressDialog progressDialog;
+    private ValueEventListener valueEventListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_gen_signupform);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Please wait...");
 
         binding.radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -68,57 +77,84 @@ public class Gen_SignupForm extends AppCompatActivity {
 
         try {
 
-            String name = binding.etName.getText().toString().trim();
-            String email = binding.etEmail.getText().toString().trim();
-            String organizationId = binding.etId.getText().toString().trim();
-            String password = AESCrypt.encrypt(binding.etPwd.getText().toString().trim());
-            String OTP = generateOTP();
+            final String name = binding.etName.getText().toString().trim();
+            final String email = binding.etEmail.getText().toString().trim();
+            final String organizationId = binding.etId.getText().toString().trim();
+            final String password = AESCrypt.encrypt(binding.etPwd.getText().toString().trim());
+            final String OTP = generateOTP();
 
+            progressDialog.show();
 
-            String user_id = Firebase.getInstance().mDatabase.child("Users").push().getKey();
-
-            Register registerUser = new Register(user_id, name, organizationId, email, password, gender.trim(), OTP, false);
-
-            Firebase.getInstance().mDatabase.child(user_id).setValue(registerUser);
-
-            Firebase.getInstance().mDatabase.child(user_id).addValueEventListener(new ValueEventListener() {
+            valueEventListener = new ValueEventListener() {
                 @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    Toast.makeText(Gen_SignupForm.this, "User Registered Successfully", Toast.LENGTH_SHORT).show();
+                public void onDataChange(DataSnapshot dataSnapshot) {
 
-                    Register registeredUser = dataSnapshot.getValue(Register.class);
+                    user_id = dataSnapshot.getChildrenCount();
+                    user_id++;
 
-                    //Sending OTP to user registered email
-                    String fromEmail = Gmail.ACCOUNT_EMAIL;
-                    String fromPassword = Gmail.ACCOUNT_PASSWORD;
-                    List<String> toEmailList = new ArrayList();
-                    toEmailList.add(registeredUser.getEmail());
+                    Firebase.getInstance().mDatabase.child(USERS).removeEventListener(valueEventListener);
 
-                    String emailSubject = "Enroute Together";
-                    String emailBody = "Your Verification Code is " + registeredUser.getOtp();
+                    Register registerUser = new Register(user_id + "", name, organizationId, email, password, gender.trim(), OTP, false);
+
+                    valueEventListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").removeEventListener(valueEventListener);
+
+                            Register registeredUser = dataSnapshot.getValue(Register.class);
+
+                            //Sending OTP to user registered email
+                            String fromEmail = Gmail.ACCOUNT_EMAIL;
+                            String fromPassword = Gmail.ACCOUNT_PASSWORD;
+                            List<String> toEmailList = new ArrayList();
+                            toEmailList.add(registeredUser.getEmail());
+
+                            String emailSubject = "Enroute Together";
+                            String emailBody = "Your Verification Code is " + registeredUser.getOtp();
 
 
-                    new SendEmailTask().execute(fromEmail,
-                            fromPassword, toEmailList, emailSubject, emailBody);
+                            new SendEmailTask().execute(fromEmail,
+                                    fromPassword, toEmailList, emailSubject, emailBody);
 
+                            progressDialog.dismiss();
+                            Toast.makeText(Gen_SignupForm.this, "User Registered Successfully", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(Gen_SignupForm.this, Gen_LoginForm.class);
+                            startActivity(intent);
+                            finish();
+                        }
 
-                    Intent intent = new Intent(Gen_SignupForm.this, Gen_LoginForm.class);
-                    startActivity(intent);
-                    finish();
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            progressDialog.dismiss();
+                            Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").removeEventListener(valueEventListener);
+                        }
+                    };
+                    Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").setValue(registerUser);
+                    Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").addValueEventListener(valueEventListener);
+
 
                 }
 
                 @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(Gen_SignupForm.this, "Failed to get data", Toast.LENGTH_SHORT).show();
+                public void onCancelled(DatabaseError databaseError) {
+                    Firebase.getInstance().mDatabase.child(USERS).removeEventListener(valueEventListener);
+                    progressDialog.dismiss();
                 }
-            });
+            };
+            Firebase.getInstance().mDatabase.child(USERS).addListenerForSingleValueEvent(valueEventListener);
 
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
     }
 
@@ -146,4 +182,6 @@ public class Gen_SignupForm extends AppCompatActivity {
     public void onBackPressed() {
         finish();
     }
+
+
 }

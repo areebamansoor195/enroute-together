@@ -21,6 +21,15 @@ public class SharedPreferencHandler {
         editor.apply();
     }
 
+    public static String getVehicle() {
+        return preferences.getString(Constants.VEHICLE_OBJECT, "");
+    }
+
+    public static void setVehicle(String vehicle) {
+        editor.putString(Constants.VEHICLE_OBJECT, vehicle);
+        editor.apply();
+    }
+
     public static void setIsLogin(Boolean loginFlag) {
         editor.putBoolean(Constants.LOGIN, loginFlag);
         editor.apply();

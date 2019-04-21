@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -36,12 +35,14 @@ public class Gen_LoginForm extends AppCompatActivity {
 
     private List<User> userList = new ArrayList<>();
     private ProgressDialog progressDialog;
+    private ValueEventListener valueEventListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_gen_loginform);
         progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
 
         binding.registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,9 +88,10 @@ public class Gen_LoginForm extends AppCompatActivity {
         progressDialog.setMessage("Please Wait...");
         progressDialog.show();
 
-        Firebase.getInstance().mDatabase.addValueEventListener(new ValueEventListener() {
+        valueEventListener = new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Firebase.getInstance().mDatabase.child("Users").removeEventListener(valueEventListener);
                 progressDialog.dismiss();
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
@@ -114,19 +116,20 @@ public class Gen_LoginForm extends AppCompatActivity {
                 } else {
                     Toast.makeText(Gen_LoginForm.this, "Unable to login user", Toast.LENGTH_SHORT).show();
                 }
-
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(DatabaseError databaseError) {
                 progressDialog.dismiss();
-                Toast.makeText(Gen_LoginForm.this, "Failed to get data", Toast.LENGTH_SHORT).show();
+                Firebase.getInstance().mDatabase.child("Users").removeEventListener(valueEventListener);
             }
-        });
+        };
+        Firebase.getInstance().mDatabase.child("Users").addValueEventListener(valueEventListener);
 
     }
 
     private void showVerificationDialog() {
+
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
@@ -168,27 +171,31 @@ public class Gen_LoginForm extends AppCompatActivity {
 
     private void updateVerifiedStatus(final Dialog dialog) {
 
-        User user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
+        final User user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
         user.setVerified(true);
+        progressDialog.show();
 
-        Firebase.getInstance().mDatabase.child(user.getFirebaseId()).setValue(user);
-
-        Firebase.getInstance().mDatabase.child(user.getFirebaseId()).addValueEventListener(new ValueEventListener() {
+        valueEventListener = new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).removeEventListener(valueEventListener);
+                progressDialog.dismiss();
                 dialog.dismiss();
                 finish();
+                User user = dataSnapshot.getValue(User.class);
+                SharedPreferencHandler.setUser(new Gson().toJson(user));
                 startActivity(new Intent(Gen_LoginForm.this, Gen_HomeActivity.class));
                 SharedPreferencHandler.setIsLogin(true);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(Gen_LoginForm.this, "Unable to verify user", Toast.LENGTH_SHORT).show();
+            public void onCancelled(DatabaseError databaseError) {
+                Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).removeEventListener(valueEventListener);
+                progressDialog.dismiss();
             }
-        });
-
-
+        };
+        Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).setValue(user);
+        Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).addValueEventListener(valueEventListener);
     }
 
     private boolean validateFields() {

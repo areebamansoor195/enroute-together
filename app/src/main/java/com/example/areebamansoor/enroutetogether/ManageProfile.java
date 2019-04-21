@@ -48,6 +48,7 @@ public class ManageProfile extends AppCompatActivity {
     private String gender;
     private Uri filePath;
     private ProgressDialog progressDialog;
+    private ValueEventListener valueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,21 +132,25 @@ public class ManageProfile extends AppCompatActivity {
         progressDialog.setMessage("Please Wait...");
         progressDialog.show();
 
-        Firebase.getInstance().mDatabase.child(user.getFirebaseId()).setValue(user);
-
-        Firebase.getInstance().mDatabase.child(user.getFirebaseId()).addValueEventListener(new ValueEventListener() {
+        valueEventListener = new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).removeEventListener(valueEventListener);
                 progressDialog.dismiss();
                 SharedPreferencHandler.setUser(new Gson().toJson(user));
                 Toast.makeText(ManageProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(DatabaseError databaseError) {
+                Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).removeEventListener(valueEventListener);
                 Toast.makeText(ManageProfile.this, "Unable to update profile", Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+
+        Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).setValue(user);
+        Firebase.getInstance().mDatabase.child("Users").child(user.getUserId()).addValueEventListener(valueEventListener);
+
     }
 
     private void uploadImage() {
@@ -156,7 +161,7 @@ public class ManageProfile extends AppCompatActivity {
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 
-            final StorageReference userImageRef = Firebase.getInstance().storageReference.child("User images/" + user.getFirebaseId() + ".jpg");
+            final StorageReference userImageRef = Firebase.getInstance().storageReference.child("User images/" + user.getUserId() + ".jpg");
 
             binding.profileImage.setDrawingCacheEnabled(true);
             binding.profileImage.buildDrawingCache();

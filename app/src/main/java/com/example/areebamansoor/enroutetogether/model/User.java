@@ -1,7 +1,9 @@
 package com.example.areebamansoor.enroutetogether.model;
 
 public class User {
-    private String firebaseId;
+    private String userId;
+    private String vehicleId;
+    private String activeDriverId;
     private String name;
     private String organizationId;
     private String email;
@@ -11,13 +13,14 @@ public class User {
     private String otp;
     private String image_url;
     private Boolean verified;
+    private String latlng;
 
     public User() {
 
     }
 
-    public User(String firebaseId, String name, String organizationId, String email, String password, String gender, String OTP, Boolean isVerified) {
-        this.firebaseId = firebaseId;
+    public User(String userId, String name, String organizationId, String email, String password, String gender, String OTP, Boolean isVerified) {
+        this.userId = userId;
         this.name = name;
         this.organizationId = organizationId;
         this.email = email;
@@ -25,6 +28,30 @@ public class User {
         this.gender = gender;
         this.otp = OTP;
         this.verified = isVerified;
+    }
+
+    public String getVehicleId() {
+        return vehicleId;
+    }
+
+    public void setVehicleId(String vehicleId) {
+        this.vehicleId = vehicleId;
+    }
+
+    public String getActiveDriverId() {
+        return activeDriverId;
+    }
+
+    public void setActiveDriverId(String activeDriverId) {
+        this.activeDriverId = activeDriverId;
+    }
+
+    public String getLatlng() {
+        return latlng;
+    }
+
+    public void setLatlng(String latlng) {
+        this.latlng = latlng;
     }
 
     public String getImage_url() {
@@ -43,12 +70,12 @@ public class User {
         this.phone_number = phone_number;
     }
 
-    public String getFirebaseId() {
-        return firebaseId;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setFirebaseId(String firebaseId) {
-        this.firebaseId = firebaseId;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getName() {

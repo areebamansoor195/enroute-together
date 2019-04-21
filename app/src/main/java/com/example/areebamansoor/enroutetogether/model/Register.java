@@ -1,7 +1,7 @@
 package com.example.areebamansoor.enroutetogether.model;
 
 public class Register {
-    private String firebaseId;
+    private String userId;
     private String name;
     private String organizationId;
     private String email;
@@ -14,8 +14,8 @@ public class Register {
 
     }
 
-    public Register(String firebaseId, String name, String organizationId, String email, String password, String gender, String OTP, Boolean isVerified) {
-        this.firebaseId = firebaseId;
+    public Register(String userId, String name, String organizationId, String email, String password, String gender, String OTP, Boolean isVerified) {
+        this.userId = userId;
         this.name = name;
         this.organizationId = organizationId;
         this.email = email;
@@ -25,12 +25,12 @@ public class Register {
         this.verified = isVerified;
     }
 
-    public String getFirebaseId() {
-        return firebaseId;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setFirebaseId(String firebaseId) {
-        this.firebaseId = firebaseId;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getName() {

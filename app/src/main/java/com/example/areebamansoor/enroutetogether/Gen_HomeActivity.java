@@ -1,5 +1,6 @@
 package com.example.areebamansoor.enroutetogether;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -14,17 +15,33 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.areebamansoor.enroutetogether.firebase.Firebase;
+import com.example.areebamansoor.enroutetogether.model.User;
+import com.example.areebamansoor.enroutetogether.model.Vehicle;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 
 public class Gen_HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     Button btn_offer, btn_book, btn_help, btn_manageprofile;
+    private User user;
+    private ValueEventListener valueEventListener;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gen_home);
+
+        user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Please Wait...");
 
 
         //defining cards
@@ -33,28 +50,61 @@ public class Gen_HomeActivity extends AppCompatActivity
         btn_help = (Button) findViewById(R.id.buttonhelp);
         btn_manageprofile = (Button) findViewById(R.id.buttonmanageprofile);
 
-
-        Toast.makeText(Gen_HomeActivity.this, "In Main", Toast.LENGTH_SHORT).show();
-
         btn_offer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(Gen_HomeActivity.this, Offer_OfferRide.class);
-                Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
-                intent.putExtra("map", "offer_ride");
-                startActivity(intent);
-                Toast.makeText(Gen_HomeActivity.this, "Offer Ride", Toast.LENGTH_SHORT).show();
+
+                if (SharedPreferencHandler.getVehicle().equalsIgnoreCase("")) {
+
+                    progressDialog.show();
+
+                    valueEventListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            progressDialog.dismiss();
+                            Firebase.getInstance().mDatabase.child("Vehicle").removeEventListener(valueEventListener);
+
+                            for (DataSnapshot data : dataSnapshot.getChildren()) {
+                                Vehicle vehicle = data.getValue(Vehicle.class);
+                                if (vehicle.getVehicleId().equalsIgnoreCase(user.getVehicleId())) {
+                                    SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
+                                    //Go to offer ride
+                                    Intent intent = new Intent(Gen_HomeActivity.this, SetupRideActivity.class);
+                                    startActivity(intent);
+                                    return;
+                                }
+                            }
+
+                            Intent intent = new Intent(Gen_HomeActivity.this, AddVehicleActivity.class);
+                            startActivity(intent);
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            progressDialog.dismiss();
+                            Firebase.getInstance().mDatabase.child("Vehicle").removeEventListener(valueEventListener);
+                        }
+                    };
+                    Firebase.getInstance().mDatabase.child("Vehicle").addValueEventListener(valueEventListener);
+
+                } else {
+                    //Go to offer ride
+                    Intent intent = new Intent(Gen_HomeActivity.this, SetupRideActivity.class);
+                    startActivity(intent);
+
+                }
+
+
             }
         });
 
         btn_book.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(Gen_HomeActivity.this, Book_DriversList.class);
-                Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
-                intent.putExtra("map", "book_ride");
+                Intent intent = new Intent(Gen_HomeActivity.this, ActiveDriversActivity.class);
                 startActivity(intent);
-                Toast.makeText(Gen_HomeActivity.this, "Book Ride", Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -89,6 +139,7 @@ public class Gen_HomeActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
 
     @Override
     public void onBackPressed() {
@@ -139,6 +190,7 @@ public class Gen_HomeActivity extends AppCompatActivity
         } else if (id == R.id.logout) {
             SharedPreferencHandler.setIsLogin(false);
             SharedPreferencHandler.setUser("");
+            SharedPreferencHandler.setVehicle("");
             finish();
             startActivity(new Intent(this, Gen_LoginForm.class));
 

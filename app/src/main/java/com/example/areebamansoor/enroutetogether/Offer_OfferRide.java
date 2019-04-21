@@ -23,8 +23,6 @@ public class Offer_OfferRide extends AppCompatActivity   {
         tv_dest=(TextView) findViewById(R.id.tv_dest);
 
 
-
-
         Intent intent = getIntent();
         destination = intent.getStringExtra("to");
         source = intent.getStringExtra("from");

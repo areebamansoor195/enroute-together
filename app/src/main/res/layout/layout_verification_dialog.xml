@@ -42,7 +42,7 @@
         android:layout_marginTop="10dp"
         android:ems="10"
         android:hint="Enter Code"
-        android:inputType="textPassword"
+        android:inputType="number"
         android:maxLength="4"
         android:textColor="@color/colorBlack"
         android:textSize="17sp" />
@@ -63,8 +63,8 @@
             android:text="CANCEL" />
 
         <Button
-            android:layout_width="wrap_content"
             android:id="@+id/btn_verify"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:text="VERIFY" />
