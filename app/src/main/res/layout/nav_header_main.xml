@@ -21,7 +21,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="5dp"
-        android:text="mmubeenk@gmail.com"
         android:textAlignment="center"
         android:textColor="@color/colorWhite"
         android:textSize="20sp" />

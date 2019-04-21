@@ -85,6 +85,7 @@ public class Gen_SignupForm extends AppCompatActivity {
 
             progressDialog.show();
 
+
             valueEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -130,6 +131,14 @@ public class Gen_SignupForm extends AppCompatActivity {
                             Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").removeEventListener(valueEventListener);
                         }
                     };
+
+                    //Child:
+                         //1:
+                            //name
+                            //email
+                            //password
+                        //2:
+                            //
                     Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").setValue(registerUser);
                     Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").addValueEventListener(valueEventListener);
 
@@ -142,6 +151,7 @@ public class Gen_SignupForm extends AppCompatActivity {
                     progressDialog.dismiss();
                 }
             };
+
             Firebase.getInstance().mDatabase.child(USERS).addListenerForSingleValueEvent(valueEventListener);
 
 

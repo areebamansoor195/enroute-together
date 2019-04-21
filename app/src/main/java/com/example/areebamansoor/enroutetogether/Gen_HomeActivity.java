@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.areebamansoor.enroutetogether.firebase.Firebase;
@@ -138,6 +139,10 @@ public class Gen_HomeActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        View header = navigationView.getHeaderView(0);
+        TextView email = (TextView) header.findViewById(R.id.email);
+        email.setText(user.getEmail() + "");
     }
 
 
