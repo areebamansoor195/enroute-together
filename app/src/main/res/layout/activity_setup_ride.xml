@@ -26,6 +26,7 @@
                 android:backgroundTint="@color/colorPrimary"
                 android:ems="10"
                 android:hint="Source"
+                android:drawableStart="@drawable/ic_locationstart_24dp"
                 android:inputType="text"
                 android:textColor="@color/colorGray"
                 android:textSize="17sp" />
@@ -39,6 +40,7 @@
                 android:backgroundTint="@color/colorPrimary"
                 android:ems="10"
                 android:hint="Destination"
+                android:drawableStart="@drawable/ic_locationstop_24dp"
                 android:inputType="text"
                 android:textColor="@color/colorGray"
                 android:textSize="17sp" />
