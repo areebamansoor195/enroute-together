@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.areebamansoor.enroutetogether.databinding.ActivityAddVehicleBinding;
@@ -30,7 +29,6 @@ public class AddVehicleActivity extends AppCompatActivity {
     private long vehicle_id = 0;
     private User user;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +36,6 @@ public class AddVehicleActivity extends AppCompatActivity {
         binding.toolbarLayout.toolbar.setTitle("Add Vehicle");
 
         user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
-
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Please wait...");
@@ -58,12 +55,10 @@ public class AddVehicleActivity extends AppCompatActivity {
     }
 
     private void createVehicle() {
-
         final String makers = binding.etMakersName.getText().toString().trim();
         final String model = binding.etModel.getText().toString().trim();
         final String color = binding.etColor.getText().toString().trim();
         final String capacity = binding.etCapacity.getText().toString().trim();
-        final String plateNumber = binding.etNumberPlate.getText().toString().trim();
 
         progressDialog.show();
 
@@ -75,10 +70,11 @@ public class AddVehicleActivity extends AppCompatActivity {
                 vehicle_id = dataSnapshot.getChildrenCount();
                 vehicle_id++;
 
+
                 user.setVehicleId(String.valueOf(vehicle_id));
                 Firebase.getInstance().mDatabase.child(USERS).child(user.getUserId()).setValue(user);
 
-                final Vehicle vehicle = new Vehicle(makers, model, color, Integer.parseInt(capacity), String.valueOf(vehicle_id), plateNumber);
+                final Vehicle vehicle = new Vehicle(makers, model, color, Integer.parseInt(capacity), String.valueOf(vehicle_id));
 
                 valueEventListener = new ValueEventListener() {
                     @Override
@@ -114,11 +110,9 @@ public class AddVehicleActivity extends AppCompatActivity {
         String model = binding.etModel.getText().toString().trim();
         String color = binding.etColor.getText().toString().trim();
         String capacity = binding.etCapacity.getText().toString().trim();
-        String plateNumber = binding.etCapacity.getText().toString().trim();
 
         if (TextUtils.isEmpty(makers) || TextUtils.isEmpty(model) ||
-                TextUtils.isEmpty(color) || TextUtils.isEmpty(capacity)
-                || TextUtils.isEmpty(plateNumber)) {
+                TextUtils.isEmpty(color) || TextUtils.isEmpty(capacity)) {
             return false;
         }
 

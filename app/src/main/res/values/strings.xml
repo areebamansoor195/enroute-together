@@ -20,6 +20,7 @@
     <string name="accept_request">Accept Request</string>
     <string name="customer_details">Customer Details</string>
     <string name="title_activity_maps">Map</string>
+    <string name="google_maps_key">AIzaSyC36pkTy64bE-71wU3MxZBNopWs5Udc1hk</string>
     <string name="title_activity_offer__start_ride">Map</string>
     <string name="title_activity_offer__end_ride">Map</string>
     <string name="don_t_have_account_register">Don\'t have an account? <u>Sign Up</u></string>

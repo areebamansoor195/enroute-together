@@ -21,7 +21,6 @@ public class SetupRideActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         binding = DataBindingUtil.setContentView(this, R.layout.activity_setup_ride);
 
         binding.toolbarLayout.toolbar.setTitle("Setup Ride");
@@ -43,12 +42,11 @@ public class SetupRideActivity extends AppCompatActivity {
                 String sourceLatLng = "24.8845719,67.1731622";  //Malir Halt
                 String destLatLng = "24.9251347,67.0277015";    //Jinnah Uni
 
-
                 ActiveDrivers activeDriver = new ActiveDrivers();
-                /*activeDriver.setPickup(source);
-                activeDriver.setDropoff(dest);
-                activeDriver.setPickupLatLng(sourceLatLng);
-                activeDriver.setDropoffLatLng(destLatLng);*/
+                activeDriver.setSource(source);
+                activeDriver.setDestination(dest);
+                activeDriver.setSourceLatLng(sourceLatLng);
+                activeDriver.setDestinationLatLng(destLatLng);
 
                 Intent intent = new Intent(SetupRideActivity.this, OfferRideActivity.class);
                 intent.putExtra("active_driver", activeDriver);
@@ -68,8 +66,6 @@ public class SetupRideActivity extends AppCompatActivity {
         binding.carModel.setText("Model : " + vehicle.getModel());
         binding.carColor.setText("Color : " + vehicle.getColor());
         binding.carCapacity.setText("Capacity : " + vehicle.getCapacity());
-        binding.carPlateNumber.setText("Plate Number : " + vehicle.getPlateNumber());
 
     }
-
 }

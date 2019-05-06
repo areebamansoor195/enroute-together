@@ -43,7 +43,6 @@ public class EditVehicleActivity extends AppCompatActivity {
         binding.etModel.setText(vehicle.getModel());
         binding.etCapacity.setText(vehicle.getCapacity() + "");
         binding.etColor.setText(vehicle.getColor());
-        binding.etNumberPlate.setText(vehicle.getPlateNumber());
 
 
         binding.saveBtn.setOnClickListener(new View.OnClickListener() {
@@ -53,7 +52,6 @@ public class EditVehicleActivity extends AppCompatActivity {
                     editVehicle();
                     return;
                 }
-
 
                 Toast.makeText(EditVehicleActivity.this, "Please fill required fields", Toast.LENGTH_SHORT).show();
             }
@@ -68,7 +66,6 @@ public class EditVehicleActivity extends AppCompatActivity {
         vehicle.setModel(binding.etModel.getText().toString().trim());
         vehicle.setColor(binding.etColor.getText().toString().trim());
         vehicle.setCapacity(Integer.parseInt(binding.etCapacity.getText().toString().trim()));
-        vehicle.setPlateNumber(binding.etNumberPlate.getText().toString().trim());
 
 
         progressDialog.show();
@@ -79,7 +76,6 @@ public class EditVehicleActivity extends AppCompatActivity {
                 Firebase.getInstance().mDatabase.child("Vehicle").child(vehicle.getVehicleId()).removeEventListener(valueEventListener);
                 progressDialog.dismiss();
                 SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
-                finish();
                 Toast.makeText(EditVehicleActivity.this, "Vehicle updated successfully", Toast.LENGTH_SHORT).show();
             }
 
@@ -99,10 +95,9 @@ public class EditVehicleActivity extends AppCompatActivity {
         String model = binding.etModel.getText().toString().trim();
         String color = binding.etColor.getText().toString().trim();
         String capacity = binding.etCapacity.getText().toString().trim();
-        String plateNumber = binding.etNumberPlate.getText().toString().trim();
 
         if (TextUtils.isEmpty(makers) || TextUtils.isEmpty(model) ||
-                TextUtils.isEmpty(color) || TextUtils.isEmpty(capacity) || TextUtils.isEmpty(plateNumber)) {
+                TextUtils.isEmpty(color) || TextUtils.isEmpty(capacity)) {
             return false;
         }
 
