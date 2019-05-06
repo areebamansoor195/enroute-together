@@ -43,10 +43,23 @@
                 android:textSize="17sp" />
 
             <EditText
-                android:id="@+id/et_color"
+                android:id="@+id/et_number_plate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/et_model"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/colorPrimary"
+                android:ems="10"
+                android:hint="Plate No."
+                android:inputType="text"
+                android:textColor="@color/colorGray"
+                android:textSize="17sp" />
+
+            <EditText
+                android:id="@+id/et_color"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/et_number_plate"
                 android:layout_marginTop="10dp"
                 android:backgroundTint="@color/colorPrimary"
                 android:ems="10"

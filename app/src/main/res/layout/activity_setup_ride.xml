@@ -97,10 +97,21 @@
                 android:textColor="@color/colorGray" />
 
             <TextView
-                android:id="@+id/car_color"
+                android:id="@+id/car_plate_number"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/car_model"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Plate Number : KMX 123"
+                android:textAlignment="center"
+                android:textColor="@color/colorGray" />
+
+            <TextView
+                android:id="@+id/car_color"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/car_plate_number"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="10dp"
                 android:text="Color : White"

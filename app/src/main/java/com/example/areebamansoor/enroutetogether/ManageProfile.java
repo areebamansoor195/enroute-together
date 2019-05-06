@@ -82,7 +82,6 @@ public class ManageProfile extends AppCompatActivity {
         else
             binding.radioGroup.check(R.id.rb_female);
 
-
         binding.radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -165,6 +164,7 @@ public class ManageProfile extends AppCompatActivity {
 
             binding.profileImage.setDrawingCacheEnabled(true);
             binding.profileImage.buildDrawingCache();
+
             Bitmap bitmap = ((BitmapDrawable) binding.profileImage.getDrawable()).getBitmap();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
@@ -198,8 +198,8 @@ public class ManageProfile extends AppCompatActivity {
             }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                    double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot
-                            .getTotalByteCount());
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+
                     progressDialog.setMessage("Uploaded " + (int) progress + "%");
                 }
             });
@@ -214,8 +214,10 @@ public class ManageProfile extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
+
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
     }
+
 
     public boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -223,7 +225,6 @@ public class ManageProfile extends AppCompatActivity {
                     == PackageManager.PERMISSION_GRANTED) {
                 return true;
             } else {
-
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                 return false;
             }
@@ -235,6 +236,7 @@ public class ManageProfile extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             chooseImage();
         }
@@ -249,8 +251,10 @@ public class ManageProfile extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
                 && data != null && data.getData() != null) {
+
             filePath = data.getData();
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);

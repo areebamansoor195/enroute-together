@@ -8,7 +8,6 @@ public class ActiveDrivers implements Serializable {
     private String sourceLatLng;
     private String destinationLatLng;
     private String currentLatlng;
-    private String userId;
     private String vehicleId;
     private String status;
     private String id;
@@ -16,14 +15,12 @@ public class ActiveDrivers implements Serializable {
     public ActiveDrivers() {
     }
 
-
-    public ActiveDrivers(String source, String destination, String sourceLatLng, String destinationLatLng, String currentLatlng, String userId, String vehicleId, String status, String id) {
+    public ActiveDrivers(String source, String destination, String sourceLatLng, String destinationLatLng, String currentLatlng, String vehicleId, String status, String id) {
         this.source = source;
         this.destination = destination;
         this.sourceLatLng = sourceLatLng;
         this.destinationLatLng = destinationLatLng;
         this.currentLatlng = currentLatlng;
-        this.userId = userId;
         this.vehicleId = vehicleId;
         this.status = status;
         this.id = id;
@@ -75,14 +72,6 @@ public class ActiveDrivers implements Serializable {
 
     public void setCurrentLatlng(String currentLatlng) {
         this.currentLatlng = currentLatlng;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getVehicleId() {
