@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".SetupRideActivity">
+
+        <include
+            android:id="@+id/toolbarLayout"
+            layout="@layout/layout_toolbar" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="?android:attr/actionBarSize"
+            android:padding="10dp">
+
+            <EditText
+                android:id="@+id/et_source"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/colorPrimary"
+                android:ems="10"
+                android:hint="Source"
+                android:drawableStart="@drawable/ic_locationstart_24dp"
+                android:inputType="text"
+                android:textColor="@color/colorGray"
+                android:textSize="17sp" />
+
+            <EditText
+                android:id="@+id/et_destination"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/et_source"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/colorPrimary"
+                android:ems="10"
+                android:hint="Destination"
+                android:drawableStart="@drawable/ic_locationstop_24dp"
+                android:inputType="text"
+                android:textColor="@color/colorGray"
+                android:textSize="17sp" />
+
+            <RelativeLayout
+                android:id="@+id/car_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/et_destination"
+                android:layout_marginTop="20dp"
+                android:background="@color/colorPrimary"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:text="Car Details"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="17dp" />
+
+                <TextView
+                    android:id="@+id/edit_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/edit"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorGray"
+                    android:textSize="17dp" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/car_make"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/car_title"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Make: Suzuki Cultus"
+                android:textAlignment="center"
+                android:textColor="@color/colorGray" />
+
+            <TextView
+                android:id="@+id/car_model"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/car_make"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Model : 2016"
+                android:textAlignment="center"
+                android:textColor="@color/colorGray" />
+
+            <TextView
+                android:id="@+id/car_plate_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/car_model"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Plate Number : KMX 123"
+                android:textAlignment="center"
+                android:textColor="@color/colorGray" />
+
+            <TextView
+                android:id="@+id/car_color"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/car_plate_number"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Color : White"
+                android:textAlignment="center"
+                android:textColor="@color/colorGray" />
+
+            <TextView
+                android:id="@+id/car_capacity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/car_color"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Capacity : 4"
+                android:textAlignment="center"
+                android:textColor="@color/colorGray" />
+
+            <Button
+                android:id="@+id/lets_start_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@color/colorGray"
+                android:padding="10dp"
+                android:text="Lets Start"
+                android:textColor="@color/colorWhite"
+                android:textSize="17sp" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+</layout>
