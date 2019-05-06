@@ -6,16 +6,26 @@ public class Vehicle {
     private String color;
     private int capacity;
     private String vehicleId;
+    private String plateNumber;
 
     public Vehicle() {
     }
 
-    public Vehicle(String maker, String model, String color, int capacity, String vehicleId) {
+    public Vehicle(String maker, String model, String color, int capacity, String vehicleId, String plateNumber) {
         this.maker = maker;
         this.model = model;
         this.color = color;
         this.capacity = capacity;
         this.vehicleId = vehicleId;
+        this.plateNumber = plateNumber;
+    }
+
+    public String getPlateNumber() {
+        return plateNumber;
+    }
+
+    public void setPlateNumber(String plateNumber) {
+        this.plateNumber = plateNumber;
     }
 
     public String getVehicleId() {

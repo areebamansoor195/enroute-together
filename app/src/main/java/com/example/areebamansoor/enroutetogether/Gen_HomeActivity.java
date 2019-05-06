@@ -63,14 +63,15 @@ public class Gen_HomeActivity extends AppCompatActivity
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             progressDialog.dismiss();
+
                             Firebase.getInstance().mDatabase.child("Vehicle").removeEventListener(valueEventListener);
 
                             for (DataSnapshot data : dataSnapshot.getChildren()) {
                                 Vehicle vehicle = data.getValue(Vehicle.class);
-                                if (vehicle.getVehicleId().equalsIgnoreCase(user.getVehicleId())) {
+                                if (user.getVehicleId().equalsIgnoreCase(vehicle.getVehicleId())) {
                                     SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
                                     //Go to offer ride
-                                    Intent intent = new Intent(Gen_HomeActivity.this, SetupRideActivity.class);
+                                    Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
                                     startActivity(intent);
                                     return;
                                 }
@@ -91,7 +92,7 @@ public class Gen_HomeActivity extends AppCompatActivity
 
                 } else {
                     //Go to offer ride
-                    Intent intent = new Intent(Gen_HomeActivity.this, SetupRideActivity.class);
+                    Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
                     startActivity(intent);
 
                 }

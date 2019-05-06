@@ -42,6 +42,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
         binding.toolbarLayout.toolbar.setTitle("Active Drivers");
 
         adapter = new ActiveDriversAdapter(activeDriversList);
+
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         binding.activeDriversList.setLayoutManager(mLayoutManager);
         binding.activeDriversList.setItemAnimator(new DefaultItemAnimator());
@@ -52,11 +53,13 @@ public class ActiveDriversActivity extends AppCompatActivity {
     }
 
     private void getActiveDrivers() {
+
         progressDialog.show();
 
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
                 Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
                 progressDialog.dismiss();
 
@@ -66,7 +69,14 @@ public class ActiveDriversActivity extends AppCompatActivity {
                 }
 
                 if (activeDriversList.size() > 0) {
-                    adapter.notifyDataSetChanged();
+
+                    adapter = new ActiveDriversAdapter(activeDriversList);
+
+                    RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+                    binding.activeDriversList.setLayoutManager(mLayoutManager);
+                    binding.activeDriversList.setItemAnimator(new DefaultItemAnimator());
+                    binding.activeDriversList.setAdapter(adapter);
+
                 } else {
                     binding.noDriverFound.setVisibility(View.VISIBLE);
                 }
@@ -77,7 +87,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
                 progressDialog.dismiss();
                 Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
             }
-        };
+};
         Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).addValueEventListener(valueEventListener);
-    }
+                }
 }
