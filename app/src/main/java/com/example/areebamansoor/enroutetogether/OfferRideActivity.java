@@ -126,7 +126,10 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         //setDriverActive();
+=======
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
 =======
 >>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
 
@@ -138,6 +141,67 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+<<<<<<< HEAD
+
+        binding.editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(OfferRideActivity.this, EditVehicleActivity.class));
+            }
+        });
+
+
+        binding.etSource.setHistoryManager(null);
+        binding.etDropoff.setHistoryManager(null);
+
+        binding.etSource.setOnPlaceSelectedListener(new OnPlaceSelectedListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                activeDrivers.setSource(place.description);
+                getPlaceLatLng("pickup", place);
+            }
+        });
+
+        binding.etDropoff.setOnPlaceSelectedListener(new OnPlaceSelectedListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                activeDrivers.setDestination(place.description);
+                getPlaceLatLng("dropoff", place);
+            }
+        });
+
+
+        binding.letsStartBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (binding.etSource.getHint().toString().equalsIgnoreCase("Pick up")) {
+                    Toast.makeText(OfferRideActivity.this, "Please enter pick up", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (binding.etDropoff.getText().toString().equalsIgnoreCase("")) {
+                    Toast.makeText(OfferRideActivity.this, "Please enter drop off", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                setActiveDriver();
+
+            }
+        });
+
+        binding.activeBusyBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (activeDrivers.getStatus().equalsIgnoreCase(OFFLINE)) {
+                    updateDriverStatus(ONLINE);
+                } else {
+                    updateDriverStatus(OFFLINE);
+                }
+            }
+        });
+    }
+
+    private void updateDriverStatus(final String status) {
+=======
 
         binding.editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -276,6 +340,114 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
     protected void onResume() {
         super.onResume();
 
+        vehicle = new Gson().fromJson(SharedPreferencHandler.getVehicle(), Vehicle.class);
+        binding.carMake.setText("Make : " + vehicle.getMaker());
+        binding.carModel.setText("Model : " + vehicle.getModel());
+        binding.carColor.setText("Color : " + vehicle.getColor());
+        binding.carCapacity.setText("Capacity : " + vehicle.getCapacity());
+        binding.carPlateNumber.setText("Plate Number : " + vehicle.getPlateNumber());
+    }
+
+    private void alertForNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                });
+
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void setActiveDriver() {
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
+
+        progressDialog.show();
+
+<<<<<<< HEAD
+        if (status.equalsIgnoreCase(OFFLINE)) {
+=======
+            progressDialog.show();
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
+
+            valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+<<<<<<< HEAD
+                    Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
+                    progressDialog.dismiss();
+                    finish();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
+                    progressDialog.dismiss();
+
+                }
+            };
+            Firebase.getInstance().mDatabase.addValueEventListener(valueEventListener);
+            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).removeValue();
+            return;
+        }
+
+        activeDrivers.setStatus(status);
+
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
+
+                progressDialog.dismiss();
+
+                binding.activeBusyBtn.setText("Go " + OFFLINE);
+                binding.activeBusyBtn.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
+                progressDialog.dismiss();
+            }
+        };
+        Firebase.getInstance().mDatabase.addValueEventListener(valueEventListener);
+        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).setValue(activeDrivers);
+    }
+
+    private void getPlaceLatLng(final String from, Place place) {
+        Places.GeoDataApi.getPlaceById(mGoogleApiClient, place.place_id).setResultCallback(new ResultCallback<PlaceBuffer>() {
+            @Override
+            public void onResult(@NonNull PlaceBuffer places) {
+                if (places.getStatus().isSuccess()) {
+                    final com.google.android.gms.location.places.Place myPlace = places.get(0);
+                    LatLng queriedLocation = myPlace.getLatLng();
+
+                    Log.v("Latitude is", "" + queriedLocation.latitude);
+                    Log.v("Longitude is", "" + queriedLocation.longitude);
+
+
+                    if (from.equalsIgnoreCase("pickup")) {
+                        activeDrivers.setSourceLatLng(queriedLocation.latitude + "," + queriedLocation.longitude);
+                        sourceLocation = queriedLocation;
+                    } else {
+                        activeDrivers.setDestinationLatLng(queriedLocation.latitude + "," + queriedLocation.longitude);
+                        destinationLocation = queriedLocation;
+                    }
+
+                }
+                places.release();
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
 <<<<<<< HEAD
             private void setDriverActive() {
 =======
@@ -324,6 +496,21 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
 
                     showMarkers();
 
+=======
+                    progressDialog.dismiss();
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
+                    activeDrivers.setId(user.getUserId());
+                    activeDrivers.setVehicleId(vehicle.getVehicleId());
+                    activeDrivers.setStatus(OFFLINE);
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(user.getUserId()).setValue(activeDrivers);
+
+                    binding.setupRideLayout.setVisibility(View.GONE);
+                    binding.activeBusyBtn.setVisibility(View.VISIBLE);
+
+
+                    showMarkers();
+
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
 
                 }
 
@@ -470,8 +657,14 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         super.onDestroy();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).removeValue();
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+=======
+        //Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).removeValue();
+        if (mGoogleApiClient != null)
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
 =======
         //Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).removeValue();
         if (mGoogleApiClient != null)
@@ -506,12 +699,15 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
                 binding.etSource.setHint(addressLine + "");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
           if (activeDrivers.getId() != null) {
               activeDrivers.setCurrentLatlng(myLatLng.latitude + "," + myLatLng.longitude);
                 Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).setValue(activeDrivers);
            }
             CameraPosition cameraPosition = new CameraPosition.Builder()
 =======
+=======
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
                 activeDrivers.setSource(addressLine);
                 activeDrivers.setSourceLatLng(myLatLng.latitude + "," + myLatLng.longitude);
             }
@@ -532,6 +728,9 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
             }
             adjustBounds();
             /*CameraPosition cameraPosition = new CameraPosition.Builder()
+<<<<<<< HEAD
+>>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
+=======
 >>>>>>> e55d5716502300c82f5bef67b31ce40548aaec47
                     .target(myLatLng)
                     .zoom(15)
