@@ -1,7 +1,8 @@
 package com.example.areebamansoor.enroutetogether.model;
 
 public class Vehicle {
-    private String maker;
+    private String name;
+    private String type;
     private String model;
     private String color;
     private int capacity;
@@ -11,13 +12,14 @@ public class Vehicle {
     public Vehicle() {
     }
 
-    public Vehicle(String maker, String model, String color, int capacity, String vehicleId, String plateNumber) {
-        this.maker = maker;
+    public Vehicle(String name, String model, String color, int capacity, String vehicleId, String plateNumber, String type) {
+        this.name = name;
         this.model = model;
         this.color = color;
         this.capacity = capacity;
         this.vehicleId = vehicleId;
         this.plateNumber = plateNumber;
+        this.type = type;
     }
 
     public String getPlateNumber() {
@@ -36,13 +38,20 @@ public class Vehicle {
         this.vehicleId = vehicleId;
     }
 
-
-    public String getMaker() {
-        return maker;
+    public String getName() {
+        return name;
     }
 
-    public void setMaker(String maker) {
-        this.maker = maker;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getModel() {

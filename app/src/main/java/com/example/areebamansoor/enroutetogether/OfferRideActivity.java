@@ -24,10 +24,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.areebamansoor.enroutetogether.databinding.ActivityOfferRideBinding;
-import com.example.areebamansoor.enroutetogether.firebase.Firebase;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.model.Vehicle;
@@ -37,12 +38,15 @@ import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.example.areebamansoor.enroutetogether.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -51,16 +55,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
-import com.seatgeek.placesautocomplete.OnPlaceSelectedListener;
-import com.seatgeek.placesautocomplete.model.Place;
 
 import org.json.JSONObject;
 
@@ -70,14 +69,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-
-import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVER;
-import static com.example.areebamansoor.enroutetogether.utils.Constants.OFFLINE;
-import static com.example.areebamansoor.enroutetogether.utils.Constants.ONLINE;
 
 public class OfferRideActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -92,11 +88,11 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
     private ActivityOfferRideBinding binding;
     private GoogleMap mMap;
     private LatLng myLatLng;
-    private User user;
-    private Vehicle vehicle;
+    private LatLng latLng;
     private ActiveDrivers activeDrivers;
-    private ValueEventListener valueEventListener;
     private SupportMapFragment mapFragment;
+    private PlaceAutocompleteFragment autocompleteFragment;
+
     private Geocoder geocoder;
     private List<Address> addresses;
 
@@ -105,19 +101,18 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
 
     private LatLng sourceLocation, destinationLocation;
 
-    private Marker currentMarker;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_offer_ride);
 
+        binding.toolbarLayout.toolbar.setTitle("Offer Ride");
+
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(false);
 
-        user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
         activeDrivers = new ActiveDrivers();
         geocoder = new Geocoder(this, Locale.getDefault());
 
@@ -135,149 +130,131 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        binding.editBtn.setOnClickListener(new View.OnClickListener() {
+
+        autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        AutocompleteFilter filter = new AutocompleteFilter.Builder()
+                .setCountry("PK")
+                .build();
+        autocompleteFragment.setFilter(filter);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(OfferRideActivity.this, EditVehicleActivity.class));
-            }
-        });
+            public void onPlaceSelected(Place place) {
 
-
-        binding.etSource.setHistoryManager(null);
-        binding.etDropoff.setHistoryManager(null);
-
-        binding.etSource.setOnPlaceSelectedListener(new OnPlaceSelectedListener() {
-            @Override
-            public void onPlaceSelected(@NonNull Place place) {
-                activeDrivers.setSource(place.description);
-                getPlaceLatLng("pickup", place);
-            }
-        });
-
-        binding.etDropoff.setOnPlaceSelectedListener(new OnPlaceSelectedListener() {
-            @Override
-            public void onPlaceSelected(@NonNull Place place) {
-                activeDrivers.setDestination(place.description);
-                getPlaceLatLng("dropoff", place);
-            }
-        });
-
-
-        binding.letsStartBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (binding.etSource.getHint().toString().equalsIgnoreCase("Pick up")) {
-                    Toast.makeText(OfferRideActivity.this, "Please enter pick up", Toast.LENGTH_SHORT).show();
-                    return;
+                if (mMap != null) {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 13));
                 }
-                if (binding.etDropoff.getText().toString().equalsIgnoreCase("")) {
-                    Toast.makeText(OfferRideActivity.this, "Please enter drop off", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            }
 
-                setActiveDriver();
-
+            @Override
+            public void onError(Status status) {
+                Toast.makeText(OfferRideActivity.this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
-        binding.activeBusyBtn.setOnClickListener(new View.OnClickListener() {
+        binding.selectLocationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (activeDrivers.getStatus().equalsIgnoreCase(OFFLINE)) {
-                    updateDriverStatus(ONLINE);
+
+                if (binding.selectLocationBtn.getText().toString().equalsIgnoreCase("Set Source")) {
+
+                    try {
+                        //Get source address from latLng
+                        addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+                        sourceLocation = latLng;
+                        String addressLine = addresses.get(0).getAddressLine(0);
+
+                        //Set source address and latlng in active driver
+                        activeDrivers.setSource(addressLine);
+                        activeDrivers.setSourceLatLng(latLng.latitude + "," + latLng.longitude);
+
+
+                        //Change button text to Set Destination
+                        binding.selectLocationBtn.setText("Set Destination");
+
+
+                        //Place source marker
+                        View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
+                        ImageView pin_image = marker.findViewById(R.id.pin_img);
+                        pin_image.setImageDrawable(getResources().getDrawable(R.drawable.source_pin));
+                        TextView marker_text = marker.findViewById(R.id.marker_text);
+                        marker_text.setText("Source");
+
+                        mMap.addMarker(new MarkerOptions()
+                                .position(latLng)
+                                .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(OfferRideActivity.this, marker))));
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                } else if (binding.selectLocationBtn.getText().toString().equalsIgnoreCase("Set Destination")) {
+
+                    try {
+                        //Get source address from latLng
+                        addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+                        destinationLocation = latLng;
+                        String addressLine = addresses.get(0).getAddressLine(0);
+
+                        //Set source address and latlng in active driver
+                        activeDrivers.setDestination(addressLine);
+                        activeDrivers.setDestinationLatLng(latLng.latitude + "," + latLng.longitude);
+
+
+                        binding.selectLocationBtn.setText("Proceed");
+
+
+                        //Place source marker
+                        View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
+                        ImageView pin_image = marker.findViewById(R.id.pin_img);
+                        pin_image.setImageDrawable(getResources().getDrawable(R.drawable.destination_pin));
+                        TextView marker_text = marker.findViewById(R.id.marker_text);
+                        marker_text.setText("Dest");
+
+                        mMap.addMarker(new MarkerOptions()
+                                .position(latLng)
+                                .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(OfferRideActivity.this, marker))));
+
+                        adjustBounds();
+                        drawRoute(activeDrivers.getSourceLatLng(), activeDrivers.getDestinationLatLng());
+                        binding.confirmAddressMapCustomMarker.setVisibility(View.GONE);
+                        binding.idCardView.setVisibility(View.GONE);
+                        binding.clearBtn.setVisibility(View.VISIBLE);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                 } else {
-                    updateDriverStatus(OFFLINE);
-                }
-            }
-        });
-    }
-
-    private void updateDriverStatus(final String status) {
-
-        progressDialog.show();
-
-        if (status.equalsIgnoreCase(OFFLINE)) {
-
-            valueEventListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
+                    //Proceed
+                    Intent intent = new Intent(OfferRideActivity.this, ConfirmRide.class);
+                    intent.putExtra("active_driver", activeDrivers);
+                    startActivity(intent);
                     finish();
                 }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
-
-                }
-            };
-            Firebase.getInstance().mDatabase.addValueEventListener(valueEventListener);
-            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).removeValue();
-            return;
-        }
-
-        activeDrivers.setStatus(status);
-
-        valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
-
-                progressDialog.dismiss();
-
-                binding.activeBusyBtn.setText("Go " + OFFLINE);
-                binding.activeBusyBtn.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Firebase.getInstance().mDatabase.removeEventListener(valueEventListener);
-                progressDialog.dismiss();
-            }
-        };
-        Firebase.getInstance().mDatabase.addValueEventListener(valueEventListener);
-        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).setValue(activeDrivers);
-    }
-
-    private void getPlaceLatLng(final String from, Place place) {
-        Places.GeoDataApi.getPlaceById(mGoogleApiClient, place.place_id).setResultCallback(new ResultCallback<PlaceBuffer>() {
-            @Override
-            public void onResult(@NonNull PlaceBuffer places) {
-                if (places.getStatus().isSuccess()) {
-                    final com.google.android.gms.location.places.Place myPlace = places.get(0);
-                    LatLng queriedLocation = myPlace.getLatLng();
-
-                    Log.v("Latitude is", "" + queriedLocation.latitude);
-                    Log.v("Longitude is", "" + queriedLocation.longitude);
-
-
-                    if (from.equalsIgnoreCase("pickup")) {
-                        activeDrivers.setSourceLatLng(queriedLocation.latitude + "," + queriedLocation.longitude);
-                        sourceLocation = queriedLocation;
-                    } else {
-                        activeDrivers.setDestinationLatLng(queriedLocation.latitude + "," + queriedLocation.longitude);
-                        destinationLocation = queriedLocation;
-                    }
-
-                }
-                places.release();
             }
         });
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+        binding.clearBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.clearBtn.setVisibility(View.GONE);
+                binding.idCardView.setVisibility(View.VISIBLE);
+                binding.selectLocationBtn.setText("Set Source");
+                binding.confirmAddressMapCustomMarker.setVisibility(View.VISIBLE);
+                mMap.clear();
+                latLng = new LatLng(24.8754092, 67.0387518);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+            }
+        });
 
-        vehicle = new Gson().fromJson(SharedPreferencHandler.getVehicle(), Vehicle.class);
-        binding.carMake.setText("Make : " + vehicle.getMaker());
-        binding.carModel.setText("Model : " + vehicle.getModel());
-        binding.carColor.setText("Color : " + vehicle.getColor());
-        binding.carCapacity.setText("Capacity : " + vehicle.getCapacity());
-        binding.carPlateNumber.setText("Plate Number : " + vehicle.getPlateNumber());
+
     }
 
     private void alertForNoGps() {
@@ -294,70 +271,10 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         alert.show();
     }
 
-    private void setActiveDriver() {
-
-        if (activeDrivers != null) {
-
-            progressDialog.show();
-
-            valueEventListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    progressDialog.dismiss();
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
-                    activeDrivers.setId(user.getUserId());
-                    activeDrivers.setVehicleId(vehicle.getVehicleId());
-                    activeDrivers.setStatus(OFFLINE);
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(user.getUserId()).setValue(activeDrivers);
-
-                    binding.setupRideLayout.setVisibility(View.GONE);
-                    binding.activeBusyBtn.setVisibility(View.VISIBLE);
-
-
-                    showMarkers();
-
-
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
-                }
-            };
-
-            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).addListenerForSingleValueEvent(valueEventListener);
-
-        }
-
-    }
-
-    private void showMarkers() {
-        if (mMap != null) {
-            mMap.addMarker(new MarkerOptions()
-                    .position(sourceLocation)
-                    .icon(BitmapDescriptorFactory.fromBitmap(Utils.createPin(50, 50, R.drawable.dot, this))));
-
-            mMap.addMarker(new MarkerOptions()
-                    .position(destinationLocation)
-                    .icon(BitmapDescriptorFactory.fromBitmap(Utils.createPin(50, 50, R.drawable.dot_red, this))));
-
-            adjustBounds();
-
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    drawRoute(activeDrivers.getSourceLatLng(), activeDrivers.getDestinationLatLng());
-                }
-            }, 1000);
-        }
-    }
 
     private void adjustBounds() {
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        if (myLatLng != null)
-            builder.include(myLatLng);
 
         if (sourceLocation != null)
             builder.include(sourceLocation);
@@ -371,13 +288,13 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         // begin new code:
         int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width * 0.22); // offset from edges of the map 12% of screen
+        int padding = (int) (width * 0.20); // offset from edges of the map 12% of screen
 
         CameraUpdate cu = null;
         if (sourceLocation != null || destinationLocation != null) {
             cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
         } else {
-            cu = CameraUpdateFactory.newLatLngZoom(myLatLng, 13);
+            cu = CameraUpdateFactory.newLatLngZoom(myLatLng, 15);
         }
 
         mMap.animateCamera(cu);
@@ -415,6 +332,36 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         mMap = googleMap;
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        latLng = new LatLng(24.8754092, 67.0387518);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+
+        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                DecimalFormat decimalFormat = new DecimalFormat("##.#######");
+                double latitude = Double.parseDouble(decimalFormat.format(mMap.getCameraPosition().target.latitude));
+                double longitude = Double.parseDouble(decimalFormat.format(mMap.getCameraPosition().target.longitude));
+                latLng = new LatLng(latitude, longitude);
+
+                Log.e(TAG, "Moving latlng = " + latLng.latitude + "," + latLng.longitude);
+            }
+        });
+
+        View mapView = mapFragment.getView();
+        if (mapView != null &&
+                mapView.findViewById(Integer.parseInt("1")) != null) {
+            // Get the button view
+            View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+            // and next place it, on bottom right (as Google Maps app)
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                    locationButton.getLayoutParams();
+            // position on right bottom
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.setMargins(0, 0, 30, 250);
+        }
+
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
@@ -460,8 +407,6 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        //Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(activeDrivers.getId()).removeValue();
         if (mGoogleApiClient != null)
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
@@ -484,39 +429,6 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
             Log.e(TAG, myLatLng.latitude + "," + myLatLng.longitude);
             activeDrivers.setCurrentLatlng(myLatLng.latitude + "," + myLatLng.longitude);
 
-            if (binding.etSource.getText().toString().equalsIgnoreCase("")) {
-
-                addresses = geocoder.getFromLocation(myLatLng.latitude, myLatLng.longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                sourceLocation = myLatLng;
-                String addressLine = addresses.get(0).getAddressLine(0);
-                binding.etSource.setHint(addressLine + "");
-
-                activeDrivers.setSource(addressLine);
-                activeDrivers.setSourceLatLng(myLatLng.latitude + "," + myLatLng.longitude);
-            }
-
-
-            if (currentMarker != null) {
-                currentMarker.setPosition(myLatLng);
-            } else {
-
-                View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
-                ImageView imageView = marker.findViewById(R.id.profileImage);
-                imageView.setImageDrawable(getResources().getDrawable(R.drawable.image_avataar));
-
-                currentMarker = mMap.addMarker(new MarkerOptions()
-                        .position(myLatLng)
-                        .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(this, marker))));
-
-            }
-            adjustBounds();
-            /*CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(myLatLng)
-                    .zoom(15)
-                    .bearing(0)
-                    .tilt(0)
-                    .build();
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -567,6 +479,7 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         String[] destination = d.split(",");
         LatLng sourceLatLng = new LatLng(Double.parseDouble(source[0]), Double.parseDouble(source[1]));
         LatLng destinationLatLng = new LatLng(Double.parseDouble(destination[0]), Double.parseDouble(destination[1]));
+
         String URL = getUrl(sourceLatLng, destinationLatLng);
         Log.e("MAP_URL", URL);
         FetchUrl FetchUrl = new FetchUrl();
