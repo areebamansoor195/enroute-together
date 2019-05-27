@@ -91,6 +91,7 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
     private LatLng latLng;
     private ActiveDrivers activeDrivers;
     private SupportMapFragment mapFragment;
+
     private PlaceAutocompleteFragment autocompleteFragment;
 
     private Geocoder geocoder;
@@ -114,6 +115,7 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         progressDialog.setCancelable(false);
 
         activeDrivers = new ActiveDrivers();
+
         geocoder = new Geocoder(this, Locale.getDefault());
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -173,7 +175,6 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
 
                         //Change button text to Set Destination
                         binding.selectLocationBtn.setText("Set Destination");
-
 
                         //Place source marker
                         View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
@@ -357,7 +358,6 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
                     locationButton.getLayoutParams();
             // position on right bottom
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
             layoutParams.setMargins(0, 0, 30, 250);
         }

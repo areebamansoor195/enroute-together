@@ -12,11 +12,11 @@ import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 
 import java.util.List;
 
-public class ActiveDriversAdapter extends RecyclerView.Adapter<ActiveDriversAdapter.MyViewHolder> {
+public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.MyViewHolder> {
 
     private List<ActiveDrivers> activeDriversList;
 
-    public ActiveDriversAdapter(List<ActiveDrivers> activeDriversList) {
+    public OfferRidesAdapter(List<ActiveDrivers> activeDriversList) {
         this.activeDriversList = activeDriversList;
     }
 
@@ -32,8 +32,8 @@ public class ActiveDriversAdapter extends RecyclerView.Adapter<ActiveDriversAdap
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int i) {
         ActiveDrivers activeDrivers = activeDriversList.get(i);
-        holder.driverName.setText("Driver's Name : ");
-        holder.route.setText("Route : " + activeDrivers.getSource() + " to " + activeDrivers.getDestination());
+        holder.source.setText(activeDrivers.getSource());
+        holder.destination.setText(activeDrivers.getDestination());
     }
 
     @Override
@@ -42,12 +42,12 @@ public class ActiveDriversAdapter extends RecyclerView.Adapter<ActiveDriversAdap
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView driverName, route;
+        private TextView source, destination;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
-            driverName = itemView.findViewById(R.id.driver_name);
-            route = itemView.findViewById(R.id.route);
+            source = itemView.findViewById(R.id.source);
+            destination = itemView.findViewById(R.id.destination);
         }
     }
 }

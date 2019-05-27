@@ -15,6 +15,7 @@ public class Constants {
     //Firebase TABLES
     public static final String USERS = "Users";
     public static final String VEHICLE = "Vehicle";
-    public static final String ACTIVE_DRIVER = "ActiveDriver";
+    public static final String ACTIVE_DRIVERS = "ActiveDrivers";
+    public static final String ACTIVE_PASSENGERS = "ActivePassengers";
 
 }

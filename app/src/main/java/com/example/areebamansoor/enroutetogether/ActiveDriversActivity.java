@@ -9,7 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.example.areebamansoor.enroutetogether.adapters.ActiveDriversAdapter;
+import com.example.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.ActivityActiveDriversBinding;
 import com.example.areebamansoor.enroutetogether.firebase.Firebase;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
@@ -20,12 +20,12 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVER;
+import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVERS;
 
 public class ActiveDriversActivity extends AppCompatActivity {
 
     private ActivityActiveDriversBinding binding;
-    private ActiveDriversAdapter adapter;
+    private OfferRidesAdapter adapter;
 
     private ProgressDialog progressDialog;
     private List<ActiveDrivers> activeDriversList = new ArrayList<>();
@@ -41,7 +41,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
         progressDialog.setMessage("Please wait...");
         binding.toolbarLayout.toolbar.setTitle("Active Drivers");
 
-        adapter = new ActiveDriversAdapter(activeDriversList);
+        adapter = new OfferRidesAdapter(activeDriversList);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         binding.activeDriversList.setLayoutManager(mLayoutManager);
@@ -60,7 +60,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
+                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
                 progressDialog.dismiss();
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
@@ -70,7 +70,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
 
                 if (activeDriversList.size() > 0) {
 
-                    adapter = new ActiveDriversAdapter(activeDriversList);
+                    adapter = new OfferRidesAdapter(activeDriversList);
 
                     RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
                     binding.activeDriversList.setLayoutManager(mLayoutManager);
@@ -85,9 +85,9 @@ public class ActiveDriversActivity extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 progressDialog.dismiss();
-                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
+                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
             }
         };
-        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).addValueEventListener(valueEventListener);
+        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addValueEventListener(valueEventListener);
     }
 }

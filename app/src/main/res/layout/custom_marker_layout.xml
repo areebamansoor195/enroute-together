@@ -9,9 +9,9 @@
         android:src="@drawable/current_location_pin" />
 
     <ImageView
+        android:id="@+id/profileImage"
         android:layout_width="35dp"
         android:layout_height="35dp"
-        android:id="@+id/profileImage"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="3dp"
         android:src="@drawable/image_avataar" />

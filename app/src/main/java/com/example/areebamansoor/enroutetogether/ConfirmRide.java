@@ -37,7 +37,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVER;
+import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVERS;
 
 public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -66,6 +66,7 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
 
 
         binding.toolbarLayout.toolbar.setTitle("Confirm Ride");
+
         activeDrivers = (ActiveDrivers) getIntent().getSerializableExtra("active_driver");
 
 
@@ -90,26 +91,46 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
 
             progressDialog.show();
 
-            activeDrivers.setId(user.getUserId());
+            activeDrivers.setUser_id(user.getUserId());
             activeDrivers.setVehicleId(vehicle.getVehicleId());
 
             valueEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    progressDialog.dismiss();
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
-                    Log.e(TAG, "Child added");
-                    finish();
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+
+                    long driver_id = dataSnapshot.getChildrenCount();
+                    driver_id++;
+
+
+                    valueEventListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            progressDialog.dismiss();
+                            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                            Log.e(TAG, "Child added");
+                            finish();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                            progressDialog.dismiss();
+                        }
+                    };
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addListenerForSingleValueEvent(valueEventListener);
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).child(String.valueOf(driver_id)).setValue(activeDrivers);
+
+
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).removeEventListener(valueEventListener);
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
                     progressDialog.dismiss();
                 }
             };
-            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).addListenerForSingleValueEvent(valueEventListener);
-            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVER).child(user.getUserId()).setValue(activeDrivers);
+            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addListenerForSingleValueEvent(valueEventListener);
 
         }
 

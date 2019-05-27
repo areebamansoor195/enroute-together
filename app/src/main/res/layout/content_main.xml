@@ -80,8 +80,7 @@
                                     android:layout_height="match_parent"
                                     android:layout_alignParentTop="true"
                                     android:layout_marginTop="0dp"
-                                    android:background="@android:color/transparent"
-                                 />
+                                    android:background="@android:color/transparent" />
 
                             </RelativeLayout>
 
@@ -206,7 +205,7 @@
                                     android:layout_width="50dp"
                                     android:layout_height="50dp"
                                     android:layout_centerInParent="true"
-                                    android:src="@drawable/help" />
+                                    android:src="@drawable/myrides" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -215,13 +214,13 @@
                                     android:layout_centerHorizontal="true"
                                     android:layout_marginTop="10dp"
                                     android:layout_marginBottom="10dp"
-                                    android:text="Help"
+                                    android:text="My Rides"
                                     android:textColor="@color/colorWhite"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
                                 <Button
-                                    android:id="@+id/buttonhelp"
+                                    android:id="@+id/buttonMyrides"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:background="@android:color/transparent" />

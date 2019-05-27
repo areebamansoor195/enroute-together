@@ -24,15 +24,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Gen_SignupLogin" />
         <activity android:name=".Gen_SignupForm" />
-        <activity android:name=".Offer_OfferRide" />
-        <activity android:name=".Gen_SignupActivity" />
         <activity android:name=".Gen_LoginForm" />
         <activity android:name=".Gen_HomeActivity" />
-        <activity android:name=".Book_DriversList" />
-        <activity android:name=".Book_DriverDetails" />
-        <activity android:name=".MessageActivity" />
         <!--
          The API key for Google Maps-based APIs is defined as a string resource.
          (See the file "res/values/google_maps_api.xml").
@@ -46,15 +40,8 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" />
-        <activity android:name=".Offer_PassengersList" />
-        <activity android:name=".Offer_PassengerDetails" />
-        <activity android:name=".Book_FareEstimate" />
-        <activity
             android:name=".ManageProfile"
             android:label="Manage Profile" />
-        <activity android:name=".Offer_BillActivity" />
         <activity android:name=".HelpActivity" />
         <activity
             android:name=".BookRideActivity"
@@ -75,7 +62,12 @@
         <activity
             android:name=".ActiveDriversActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".ConfirmRide"></activity>
+        <activity
+            android:name=".ConfirmRide"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MyRidesActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

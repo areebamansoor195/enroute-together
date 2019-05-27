@@ -9,27 +9,17 @@ public class ActiveDrivers implements Serializable {
     private String destinationLatLng;
     private String currentLatlng;
     private String vehicleId;
-    private String id;
+    private String user_id;
 
     public ActiveDrivers() {
     }
 
-    public ActiveDrivers(String source, String destination, String sourceLatLng, String destinationLatLng, String currentLatlng, String vehicleId, String id) {
-        this.source = source;
-        this.destination = destination;
-        this.sourceLatLng = sourceLatLng;
-        this.destinationLatLng = destinationLatLng;
-        this.currentLatlng = currentLatlng;
-        this.vehicleId = vehicleId;
-        this.id = id;
+    public String getUser_id() {
+        return user_id;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 
     public String getSource() {

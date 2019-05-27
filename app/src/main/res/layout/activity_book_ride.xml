@@ -10,29 +10,73 @@
         tools:context=".BookRideActivity">
 
 
-        <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="@style/AppTheme.AppBarOverlay">
-
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/AppTheme.PopupOverlay"
-                app:title="Book A Ride" />
-
-        </android.support.design.widget.AppBarLayout>
+        <include
+            android:id="@+id/toolbarLayout"
+            layout="@layout/layout_toolbar" />
 
 
-        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="?android:attr/actionBarSize"
-            tools:context=".BookRideActivity" />
+            android:layout_marginTop="?android:attr/actionBarSize">
+
+
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".BookRideActivity" />
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/idCardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_marginTop="5dp"
+                app:cardCornerRadius="4dp">
+
+                <fragment
+                    android:id="@+id/place_autocomplete_fragment"
+                    android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </android.support.v7.widget.CardView>
+
+            <ImageView
+                android:id="@+id/clear_btn"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="right"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="25dp"
+                android:src="@drawable/clear"
+                android:visibility="gone" />
+
+
+            <ImageView
+                android:id="@+id/confirm_address_map_custom_marker"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="25dp"
+                android:src="@drawable/logo" />
+
+            <Button
+                android:id="@+id/selectLocationBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="10dp"
+                android:background="@color/colorGray"
+                android:text="Set Pick-Up"
+                android:textColor="@color/colorWhite" />
+
+
+        </FrameLayout>
+
     </RelativeLayout>
 </layout>

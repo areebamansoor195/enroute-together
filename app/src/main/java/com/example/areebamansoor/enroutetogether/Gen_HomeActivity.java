@@ -28,7 +28,7 @@ import com.google.gson.Gson;
 public class Gen_HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    Button btn_offer, btn_book, btn_help, btn_manageprofile;
+    Button btn_offer, btn_book, btn_help, btn_manageprofile, btnMyRides;
     private User user;
     private ValueEventListener valueEventListener;
     private ProgressDialog progressDialog;
@@ -48,7 +48,8 @@ public class Gen_HomeActivity extends AppCompatActivity
         //defining cards
         btn_offer = (Button) findViewById(R.id.buttonOffer);
         btn_book = (Button) findViewById(R.id.buttonBook);
-        btn_help = (Button) findViewById(R.id.buttonhelp);
+        //  btn_help = (Button) findViewById(R.id.buttonhelp);
+        btnMyRides = (Button) findViewById(R.id.buttonMyrides);
         btn_manageprofile = (Button) findViewById(R.id.buttonmanageprofile);
 
         btn_offer.setOnClickListener(new View.OnClickListener() {
@@ -104,12 +105,17 @@ public class Gen_HomeActivity extends AppCompatActivity
         btn_book.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Gen_HomeActivity.this, ActiveDriversActivity.class);
+                Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
                 startActivity(intent);
-
             }
         });
 
+        btnMyRides.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Gen_HomeActivity.this, MyRidesActivity.class));
+            }
+        });
         btn_manageprofile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,14 +125,14 @@ public class Gen_HomeActivity extends AppCompatActivity
             }
         });
 
-        btn_help.setOnClickListener(new View.OnClickListener() {
+       /* btn_help.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Gen_HomeActivity.this, HelpActivity.class);
                 startActivity(intent);
                 Toast.makeText(Gen_HomeActivity.this, "Help", Toast.LENGTH_SHORT).show();
             }
-        });
+        });*/
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
