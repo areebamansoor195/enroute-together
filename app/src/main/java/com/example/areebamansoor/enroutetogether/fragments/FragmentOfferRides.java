@@ -15,12 +15,13 @@ import android.view.ViewGroup;
 import com.example.areebamansoor.enroutetogether.R;
 import com.example.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.FragmentOfferRidesBinding;
-import com.example.areebamansoor.enroutetogether.firebase.Firebase;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
@@ -65,19 +66,20 @@ public class FragmentOfferRides extends Fragment {
 
     private void getMyOfferRides() {
 
+        final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
+
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                activeDriverRef.removeEventListener(valueEventListener);
 
                 binding.progress.setVisibility(GONE);
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
                     ActiveDrivers activeDrivers = data.getValue(ActiveDrivers.class);
 
-                    if (activeDrivers.getUser_id().equalsIgnoreCase(user.getUserId()))
-                        activeDriversList.add(activeDrivers);
+                    activeDriversList.add(activeDrivers);
                 }
 
                 if (activeDriversList.size() > 0) {
@@ -96,9 +98,9 @@ public class FragmentOfferRides extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                activeDriverRef.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
             }
         };
-        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addValueEventListener(valueEventListener);
+        activeDriverRef.addValueEventListener(valueEventListener);
     }
 }

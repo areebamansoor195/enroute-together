@@ -9,8 +9,26 @@ public class ActivePassengers implements Serializable {
     private String dropoffLatLng;
     private String currentLatlng;
     private String userId;
+    private String requestedSeats;
+    private String timeStamp;
 
     public ActivePassengers() {
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
+
+    public String getRequestedSeats() {
+        return requestedSeats;
+    }
+
+    public void setRequestedSeats(String requestedSeats) {
+        this.requestedSeats = requestedSeats;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
     }
 
     public String getPickup() {

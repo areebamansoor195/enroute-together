@@ -16,14 +16,20 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.areebamansoor.enroutetogether.firebase.Firebase;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.model.Vehicle;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.example.areebamansoor.enroutetogether.utils.Constants.VEHICLE;
 
 public class Gen_HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -58,38 +64,41 @@ public class Gen_HomeActivity extends AppCompatActivity
 
                 if (SharedPreferencHandler.getVehicle().equalsIgnoreCase("")) {
 
+                    if (user.getVehicleId() == null) {
+                        Intent intent = new Intent(Gen_HomeActivity.this, AddVehicleActivity.class);
+                        startActivity(intent);
+                        return;
+                    }
                     progressDialog.show();
+
+                    final DatabaseReference vehicleRef = FirebaseDatabase.getInstance().getReference(VEHICLE).child(user.getVehicleId());
 
                     valueEventListener = new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             progressDialog.dismiss();
 
-                            Firebase.getInstance().mDatabase.child("Vehicle").removeEventListener(valueEventListener);
+                            vehicleRef.removeEventListener(valueEventListener);
 
-                            for (DataSnapshot data : dataSnapshot.getChildren()) {
-                                Vehicle vehicle = data.getValue(Vehicle.class);
-                                if (user.getVehicleId().equalsIgnoreCase(vehicle.getVehicleId())) {
-                                    SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
-                                    //Go to offer ride
-                                    Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
-                                    startActivity(intent);
-                                    return;
-                                }
+                            Vehicle vehicle = dataSnapshot.getValue(Vehicle.class);
+                            if (vehicle != null) {
+                                SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
+                                //Go to offer ride
+                                Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
+                                startActivity(intent);
+                                return;
                             }
-
-                            Intent intent = new Intent(Gen_HomeActivity.this, AddVehicleActivity.class);
-                            startActivity(intent);
 
                         }
 
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
                             progressDialog.dismiss();
-                            Firebase.getInstance().mDatabase.child("Vehicle").removeEventListener(valueEventListener);
+                            vehicleRef.removeEventListener(valueEventListener);
                         }
                     };
-                    Firebase.getInstance().mDatabase.child("Vehicle").addValueEventListener(valueEventListener);
+                    vehicleRef.addListenerForSingleValueEvent(valueEventListener);
+
 
                 } else {
                     //Go to offer ride
@@ -149,6 +158,14 @@ public class Gen_HomeActivity extends AppCompatActivity
 
         View header = navigationView.getHeaderView(0);
         TextView email = (TextView) header.findViewById(R.id.email);
+        CircleImageView profileImg = header.findViewById(R.id.profile_image);
+
+        if (user.getImage_url() != null)
+            Picasso.get()
+                    .load(user.getImage_url())
+                    .placeholder(R.drawable.icon2)
+                    .into(profileImg);
+
         email.setText(user.getEmail() + "");
     }
 

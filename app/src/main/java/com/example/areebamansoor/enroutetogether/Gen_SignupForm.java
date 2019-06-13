@@ -132,13 +132,6 @@ public class Gen_SignupForm extends AppCompatActivity {
                         }
                     };
 
-                    //Child:
-                         //1:
-                            //name
-                            //email
-                            //password
-                        //2:
-                            //
                     Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").setValue(registerUser);
                     Firebase.getInstance().mDatabase.child(USERS).child(user_id + "").addValueEventListener(valueEventListener);
 

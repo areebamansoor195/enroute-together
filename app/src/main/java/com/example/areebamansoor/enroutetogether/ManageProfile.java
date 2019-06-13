@@ -138,6 +138,7 @@ public class ManageProfile extends AppCompatActivity {
                 progressDialog.dismiss();
                 SharedPreferencHandler.setUser(new Gson().toJson(user));
                 Toast.makeText(ManageProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                finish();
             }
 
             @Override
@@ -167,7 +168,7 @@ public class ManageProfile extends AppCompatActivity {
 
             Bitmap bitmap = ((BitmapDrawable) binding.profileImage.getDrawable()).getBitmap();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
             byte[] data = baos.toByteArray();
 
             UploadTask uploadTask = userImageRef.putBytes(data);

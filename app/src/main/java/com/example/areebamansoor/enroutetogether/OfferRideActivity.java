@@ -30,11 +30,8 @@ import android.widget.Toast;
 
 import com.example.areebamansoor.enroutetogether.databinding.ActivityOfferRideBinding;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
-import com.example.areebamansoor.enroutetogether.model.User;
-import com.example.areebamansoor.enroutetogether.model.Vehicle;
 import com.example.areebamansoor.enroutetogether.utils.DataParser;
 import com.example.areebamansoor.enroutetogether.utils.MapAnimator;
-import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.example.areebamansoor.enroutetogether.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -58,7 +55,6 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
@@ -97,7 +93,7 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
     private Geocoder geocoder;
     private List<Address> addresses;
 
-    private ArrayList<Polyline> polylineArrayList;
+    private Polyline driverRoute;
     private ProgressDialog progressDialog;
 
     private LatLng sourceLocation, destinationLocation;
@@ -233,6 +229,7 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
 
                 } else {
                     //Proceed
+                    activeDrivers.setDriverRoute(new Gson().toJson(driverRoute.getPoints()));
                     Intent intent = new Intent(OfferRideActivity.this, ConfirmRide.class);
                     intent.putExtra("active_driver", activeDrivers);
                     startActivity(intent);
@@ -392,10 +389,11 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
         Log.e(TAG, "onConnected");
         Toast.makeText(this, "onConnected", Toast.LENGTH_SHORT).show();
 
+
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -546,7 +544,7 @@ public class OfferRideActivity extends FragmentActivity implements OnMapReadyCal
 
     private void startAnim(ArrayList<LatLng> route) {
         if (mMap != null) {
-            polylineArrayList = MapAnimator.getInstance().animateRoute(mMap, route);
+            driverRoute = MapAnimator.getInstance().animateRoute(mMap, route).get(0);
         } else {
             Toast.makeText(getApplicationContext(), "Map not ready", Toast.LENGTH_LONG).show();
         }

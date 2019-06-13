@@ -1,25 +1,62 @@
 package com.example.areebamansoor.enroutetogether.model;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 
 public class ActiveDrivers implements Serializable {
     private String source;
     private String destination;
     private String sourceLatLng;
+    private String driverRoute;
     private String destinationLatLng;
     private String currentLatlng;
-    private String vehicleId;
-    private String user_id;
+    private String timeStamp;
+    private String availableSeats;
+    private String driverDetails;
+    private String vehicleDetails;
 
     public ActiveDrivers() {
     }
 
-    public String getUser_id() {
-        return user_id;
+    public User getDriverDetails() {
+        return new Gson().fromJson(driverDetails, User.class);
     }
 
-    public void setUser_id(String user_id) {
-        this.user_id = user_id;
+    public void setDriverDetails(User driverDetails) {
+        this.driverDetails = new Gson().toJson(driverDetails);
+    }
+
+    public Vehicle getVehicleDetails() {
+        return new Gson().fromJson(vehicleDetails, Vehicle.class);
+    }
+
+    public void setVehicleDetails(Vehicle vehicleDetails) {
+        this.vehicleDetails = new Gson().toJson(vehicleDetails);
+    }
+
+    public String getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(String availableSeats) {
+        this.availableSeats = availableSeats;
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
+    }
+
+    public String getDriverRoute() {
+        return driverRoute;
+    }
+
+    public void setDriverRoute(String driverRoute) {
+        this.driverRoute = driverRoute;
     }
 
     public String getSource() {
@@ -62,12 +99,5 @@ public class ActiveDrivers implements Serializable {
         this.currentLatlng = currentLatlng;
     }
 
-    public String getVehicleId() {
-        return vehicleId;
-    }
-
-    public void setVehicleId(String vehicleId) {
-        this.vehicleId = vehicleId;
-    }
 
 }

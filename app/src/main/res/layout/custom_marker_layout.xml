@@ -8,13 +8,13 @@
         android:layout_height="60dp"
         android:src="@drawable/current_location_pin" />
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/profileImage"
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="3dp"
-        android:src="@drawable/image_avataar" />
+        android:src="@drawable/icon2" />
 
 
 </RelativeLayout>

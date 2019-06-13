@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,8 +30,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
@@ -69,7 +75,6 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
 
         activeDrivers = (ActiveDrivers) getIntent().getSerializableExtra("active_driver");
 
-
         binding.editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,37 +96,59 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
 
             progressDialog.show();
 
-            activeDrivers.setUser_id(user.getUserId());
-            activeDrivers.setVehicleId(vehicle.getVehicleId());
+            User driverDetail = new User();
+            driverDetail.setName(user.getName());
+            driverDetail.setImage_url(user.getImage_url());
+            driverDetail.setGender(user.getGender());
+            driverDetail.setUserId(user.getUserId());
+            if (user.getPhone_number() != null)
+                driverDetail.setPhone_number(user.getPhone_number());
+
+            Vehicle vehicleDetail = new Vehicle();
+            vehicleDetail.setName(vehicle.getName());
+            vehicleDetail.setPlateNumber(vehicle.getPlateNumber());
+            vehicleDetail.setColor(vehicle.getColor());
+            vehicleDetail.setCapacity(vehicle.getCapacity());
+
+            activeDrivers.setDriverDetails(driverDetail);
+            activeDrivers.setVehicleDetails(vehicleDetail);
+
+
+            final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
 
             valueEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                    activeDriverRef.removeEventListener(valueEventListener);
 
-                    long driver_id = dataSnapshot.getChildrenCount();
-                    driver_id++;
+                    Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+                    List<ActiveDrivers> myOfferRides = new ArrayList<>();
 
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        ActiveDrivers activeDriverTemp = data.getValue(ActiveDrivers.class);
+                        myOfferRides.add(activeDriverTemp);
+                    }
 
-                    valueEventListener = new ValueEventListener() {
+                    activeDrivers.setTimeStamp(Utils.getCurrentDateTime());
+
+                    myOfferRides.add(activeDrivers);
+
+                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).child(user.getUserId()).
+                            setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
+                        public void onComplete(@NonNull Task<Void> task) {
                             progressDialog.dismiss();
                             Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
                             Log.e(TAG, "Child added");
+                            startActivity(new Intent(ConfirmRide.this, MyRidesActivity.class));
                             finish();
                         }
-
+                    }).addOnFailureListener(new OnFailureListener() {
                         @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                        public void onFailure(@NonNull Exception e) {
                             progressDialog.dismiss();
                         }
-                    };
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addListenerForSingleValueEvent(valueEventListener);
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).child(String.valueOf(driver_id)).setValue(activeDrivers);
-
-
+                    });
                 }
 
                 @Override
@@ -130,7 +157,7 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
                     progressDialog.dismiss();
                 }
             };
-            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addListenerForSingleValueEvent(valueEventListener);
+            activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
 
         }
 
@@ -145,6 +172,8 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
         binding.carColor.setText("Color : " + vehicle.getColor());
         binding.carModel.setText("Model : " + vehicle.getModel());
         binding.carPlateNumber.setText("Plate Number : " + vehicle.getPlateNumber());
+
+        activeDrivers.setAvailableSeats(vehicle.getCapacity() + "");
     }
 
     @Override

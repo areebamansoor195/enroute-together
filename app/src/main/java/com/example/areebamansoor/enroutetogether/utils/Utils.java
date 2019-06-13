@@ -12,6 +12,9 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.View;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 public class Utils {
 
     public static boolean isLocationEnabled(Context context) {
@@ -34,6 +37,17 @@ public class Utils {
             return !TextUtils.isEmpty(locationProviders);
         }
 
+    }
+
+    public static String getCurrentDateTime() {
+        // Create a DateFormatter object for displaying date in specified format.
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
+
+        // Create a calendar object that will convert the date and time value in milliseconds to date.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        return formatter.format(calendar.getTime());
     }
 
     public static Bitmap createPin(int height, int width, int drawable, Context context) {
@@ -61,4 +75,5 @@ public class Utils {
 
         return bitmap;
     }
+
 }

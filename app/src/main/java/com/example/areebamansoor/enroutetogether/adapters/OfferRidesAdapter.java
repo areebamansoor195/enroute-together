@@ -34,6 +34,7 @@ public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.My
         ActiveDrivers activeDrivers = activeDriversList.get(i);
         holder.source.setText(activeDrivers.getSource());
         holder.destination.setText(activeDrivers.getDestination());
+        holder.dateTime.setText(activeDrivers.getTimeStamp().split("\\.")[0]);
     }
 
     @Override
@@ -42,12 +43,13 @@ public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.My
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView source, destination;
+        private TextView source, destination, dateTime;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             source = itemView.findViewById(R.id.source);
             destination = itemView.findViewById(R.id.destination);
+            dateTime = itemView.findViewById(R.id.date_time);
         }
     }
 }

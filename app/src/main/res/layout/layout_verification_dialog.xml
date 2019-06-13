@@ -20,6 +20,7 @@
         android:layout_marginTop="10dp"
         android:text="Verify Code"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+        android:textColor="@color/colorPrimary"
         android:textStyle="bold" />
 
     <TextView
@@ -31,6 +32,7 @@
         android:layout_marginTop="10dp"
         android:text="Please enter the code that was sent to you at "
         android:textAlignment="center"
+        android:textColor="@color/colorGray"
         android:textStyle="bold" />
 
     <EditText
@@ -60,14 +62,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="20dp"
-            android:text="CANCEL" />
+            android:background="@color/colorGray"
+            android:text="CANCEL"
+            android:textColor="@color/colorWhite" />
 
         <Button
             android:id="@+id/btn_verify"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:text="VERIFY" />
+            android:background="@color/colorGray"
+            android:text="VERIFY"
+            android:textColor="@color/colorWhite" />
 
     </RelativeLayout>
 

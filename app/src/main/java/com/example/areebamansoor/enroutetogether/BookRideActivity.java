@@ -1,7 +1,9 @@
 package com.example.areebamansoor.enroutetogether;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,6 +25,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -65,8 +70,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+import com.google.maps.android.PolyUtil;
+import com.isapanah.awesomespinner.AwesomeSpinner;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -78,9 +88,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.view.View.GONE;
 import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVERS;
@@ -89,6 +102,7 @@ import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_P
 public class BookRideActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
+        GoogleMap.OnMarkerClickListener,
         LocationListener {
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
@@ -113,8 +127,11 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
     private LatLng sourceLocation, destinationLocation;
     private List<Marker> driverMarkers = new ArrayList<>();
+    private List<ActiveDrivers> availableDriverList = new ArrayList<>();
 
     private ValueEventListener valueEventListener;
+
+    private ValueEventListener activeDriversListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,6 +148,9 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         activePassengers = new ActivePassengers();
 
         geocoder = new Geocoder(this, Locale.getDefault());
+
+        binding.capacity.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                Arrays.asList(getResources().getStringArray(R.array.vehicle_capacity))));
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
@@ -223,8 +243,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         activePassengers.setDropoffLatLng(latLng.latitude + "," + latLng.longitude);
 
 
-                        binding.selectLocationBtn.setText("Let's Go");
-
+                        binding.selectLocationBtn.setText("Select No. of Seats");
 
                         //Place source marker
                         View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
@@ -247,8 +266,10 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         e.printStackTrace();
                     }
 
-                } else if (binding.selectLocationBtn.getText().toString().equalsIgnoreCase("Search for Driver")) {
-                    getActiveDrivers();
+                } else if (binding.selectLocationBtn.getText().toString().equalsIgnoreCase("Select No. of Seats")) {
+
+                    binding.seatContainer.setVisibility(View.VISIBLE);
+
                 } else {
                     //Lets Go
                     setActivePassenger();
@@ -256,6 +277,34 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
             }
         });
+
+        binding.cancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                binding.seatContainer.setVisibility(GONE);
+            }
+        });
+
+        binding.doneBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (activePassengers.getRequestedSeats() == null) {
+                    Toast.makeText(BookRideActivity.this, "Select no. of seats", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                binding.seatContainer.setVisibility(GONE);
+                binding.selectLocationBtn.setText("Let's Go");
+            }
+        });
+
+        binding.capacity.setOnSpinnerItemClickListener(new AwesomeSpinner.onSpinnerItemClickListener<String>() {
+            @Override
+            public void onItemSelected(int position, String itemAtPosition) {
+                activePassengers.setRequestedSeats(itemAtPosition);
+            }
+        });
+
 
         binding.clearBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -281,23 +330,32 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
             activePassengers.setUserId(user.getUserId());
 
-
+            final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
             valueEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).removeEventListener(valueEventListener);
 
-                    passenger_id = dataSnapshot.getChildrenCount();
-                    passenger_id++;
+                    activePassengerRef.removeEventListener(valueEventListener);
 
-                    Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).child(String.valueOf(passenger_id)).
-                            setValue(activePassengers).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+                    List<ActivePassengers> myBookRides = new ArrayList<>();
+
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        ActivePassengers activePassengers = data.getValue(ActivePassengers.class);
+                        myBookRides.add(activePassengers);
+                    }
+
+                    activePassengers.setTimeStamp(Utils.getCurrentDateTime());
+                    myBookRides.add(activePassengers);
+
+                    Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).child(user.getUserId()).
+                            setValue(myBookRides).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             Log.e(TAG, "Child added");
                             binding.clearBtn.setVisibility(GONE);
-                            binding.selectLocationBtn.setText("Search for Driver");
-                            getActiveDrivers();
+                            binding.selectLocationBtn.setVisibility(GONE);
+                            getActiveDrivers(true);
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -310,36 +368,44 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
+                    activePassengerRef.removeEventListener(valueEventListener);
                 }
             };
-            Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).addListenerForSingleValueEvent(valueEventListener);
+            activePassengerRef.addListenerForSingleValueEvent(valueEventListener);
 
         }
     }
 
-    private void getActiveDrivers() {
+    private void getActiveDrivers(boolean isDialogShow) {
         try {
 
-            progressDialog.setMessage("Searching for drivers...");
-            if (!progressDialog.isShowing())
-                progressDialog.show();
+            availableDriverList.clear();
 
-            valueEventListener = new ValueEventListener() {
+            if (isDialogShow) {
+                progressDialog.setMessage("Searching for drivers...");
+            }
+
+
+            activeDriversListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
+                    if (progressDialog != null && progressDialog.isShowing())
+                        progressDialog.dismiss();
+
                     Log.e(TAG, "Active Drivers = " + dataSnapshot.getChildrenCount() + "");
 
-                    List<ActiveDrivers> activeDrivers = new ArrayList<>();
+                    availableDriverList = new ArrayList<>();
                     for (DataSnapshot data : dataSnapshot.getChildren()) {
-                        ActiveDrivers driver = data.getValue(ActiveDrivers.class);
-                        activeDrivers.add(driver);
+                        for (DataSnapshot dataSnapshot1 : data.getChildren()) {
+                            ActiveDrivers driver = dataSnapshot1.getValue(ActiveDrivers.class);
+
+                            if (checkDriverParameters(driver)) {
+                                availableDriverList.add(driver);
+                            }
+                        }
                     }
 
-                    if (activeDrivers.size() == 0) {
+                    if (availableDriverList.size() == 0) {
 
                         if (driverMarkers.size() > 0) {
                             for (Marker marker : driverMarkers) {
@@ -353,16 +419,14 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         return;
                     }
 
-                    showDrivers(activeDrivers);
+                    showDrivers();
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
                 }
             };
-            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addListenerForSingleValueEvent(valueEventListener);
+            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).addValueEventListener(activeDriversListener);
 
 
         } catch (Exception e) {
@@ -370,7 +434,56 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         }
     }
 
-    private void showDrivers(List<ActiveDrivers> activeDrivers) {
+    private void stopGettingDriversUpdate() {
+        Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(activeDriversListener);
+    }
+
+
+    private boolean checkDriverParameters(ActiveDrivers driver) {
+
+        boolean result = false;
+
+        //First check pickup and dropoff is onPath of driver with 1 km meter tolerance
+        List<LatLng> driverRoute = Arrays.asList(new Gson().fromJson(driver.getDriverRoute(), LatLng[].class));
+
+        Log.e(TAG, "Checking passenger pickup and dropoff is onPath of driver with 1 km meter tolerance");
+
+        String[] pickupLatLng = activePassengers.getPickupLatLng().split(",");
+        String[] dropoffLatLng = activePassengers.getDropoffLatLng().split(",");
+
+        LatLng pickUpLatLng = new LatLng(Double.parseDouble(pickupLatLng[0]), Double.parseDouble(pickupLatLng[1]));
+        LatLng dropoOFFLatLng = new LatLng(Double.parseDouble(dropoffLatLng[0]), Double.parseDouble(dropoffLatLng[1]));
+
+        boolean pickupOnPath = PolyUtil.isLocationOnPath(pickUpLatLng, driverRoute, true, 1000); // 1 km
+        boolean dropoffOnPath = PolyUtil.isLocationOnPath(dropoOFFLatLng, driverRoute, true, 1000); // 1 km
+
+        Log.e(TAG, "Pickup is on Path = " + pickupOnPath + "\n Dropoff is on Path = " + dropoffOnPath);
+
+        if (pickupOnPath && dropoffOnPath) {
+            result = true;
+        }
+
+        if (!result) { //if pick and drop dont exist on Path then return false
+            return result;
+        }
+
+
+        //If pickup and dropoff both is on Path then check second parameter
+        //i.e driver available seats must be greater and equal to passenger requested seats.
+
+        int driverAvailableSeats = Integer.parseInt(driver.getAvailableSeats());  //4
+        int passengerRequestedSeats = Integer.parseInt(activePassengers.getRequestedSeats()); //2
+
+        Log.e(TAG, "Available seats = " + driverAvailableSeats + "\n Requested seats= " + passengerRequestedSeats);
+        if (driverAvailableSeats >= passengerRequestedSeats) {
+            result = true;
+        } else {
+            result = false;
+        }
+        return result;
+    }
+
+    private void showDrivers() {
 
         for (Marker marker : driverMarkers) {
             marker.remove();
@@ -378,13 +491,25 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
         driverMarkers.clear();
 
-        for (ActiveDrivers activeDriver : activeDrivers) {
+        for (ActiveDrivers activeDriver : availableDriverList) {
             String[] latLngString = activeDriver.getCurrentLatlng().split(",");
             LatLng driverPosition = new LatLng(Double.parseDouble(latLngString[0]), Double.parseDouble(latLngString[1]));
             View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
-            driverMarkers.add(mMap.addMarker(new MarkerOptions()
+
+            if (activeDriver.getDriverDetails().getImage_url() != null) {
+                CircleImageView profile_img = marker.findViewById(R.id.profileImage);
+                Log.e(TAG, activeDriver.getDriverDetails().getImage_url());
+                Picasso.get()
+                        .load(user.getImage_url())
+                        .placeholder(R.drawable.image_avataar)
+                        .into(profile_img);
+            }
+
+            Marker driverMarker = mMap.addMarker(new MarkerOptions()
                     .position(driverPosition)
-                    .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(BookRideActivity.this, marker)))));
+                    .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(BookRideActivity.this, marker))));
+            driverMarker.setTag(driverMarkers.size());
+            driverMarkers.add(driverMarker);
 
         }
 
@@ -506,6 +631,8 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         latLng = new LatLng(24.8754092, 67.0387518);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
 
+        mMap.setOnMarkerClickListener(this);
+
         mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
             public void onCameraIdle() {
@@ -543,6 +670,8 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
+
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -555,6 +684,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         mGoogleApiClient.connect();
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onConnected(Bundle bundle) {
 
@@ -564,7 +694,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -578,15 +708,6 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         super.onDestroy();
         if (mGoogleApiClient != null)
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-
-        if (passenger_id != 0) {
-            Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).child(String.valueOf(passenger_id)).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    finish();
-                }
-            });
-        }
     }
 
     @Override
@@ -599,6 +720,23 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (binding.selectLocationBtn.getVisibility() == GONE) {
+            getActiveDrivers(false);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (binding.selectLocationBtn.getVisibility() == GONE) {
+            stopGettingDriversUpdate();
+        }
+    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -649,8 +787,39 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         builder.setTitle("Please Confirm");
         builder.setMessage("Are you sure you want to discard this booking?")
                 .setCancelable(false)
+                .setNeutralButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                })
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int id) {
+                        final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
+                        valueEventListener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                currentRideRef.removeEventListener(valueEventListener);
+                                Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+                                for (DataSnapshot data : dataSnapshot.getChildren()) {
+
+                                    ActivePassengers mCurrentRide = data.getValue(ActivePassengers.class);
+                                    if (mCurrentRide != null) {
+                                        if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activePassengers.getTimeStamp()))
+                                            currentRideRef.child(data.getKey()).removeValue();
+                                    }
+
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                currentRideRef.removeEventListener(valueEventListener);
+                            }
+                        };
+                        currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
                         dialog.dismiss();
                         finish();
                     }
@@ -745,6 +914,63 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         } else {
             Toast.makeText(getApplicationContext(), "Map not ready", Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        if (marker.getTag() != null) {
+            ActiveDrivers driverDetails = availableDriverList.get((int) marker.getTag());
+            if (driverDetails != null) {
+                Log.e(TAG, driverDetails.getDriverDetails().getName());
+                openDialog(driverDetails);
+            }
+        }
+        return false;
+    }
+
+    private void openDialog(ActiveDrivers driver) {
+
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_driver_details);
+
+        Button sendRequestBtn = dialog.findViewById(R.id.btn_send_req);
+        TextView name = dialog.findViewById(R.id.driverName);
+        TextView source = dialog.findViewById(R.id.source);
+        TextView destination = dialog.findViewById(R.id.destination);
+        TextView availableSeats = dialog.findViewById(R.id.availableSeats);
+        CircleImageView profileImage = dialog.findViewById(R.id.profile_image);
+        ImageView closeBtn = dialog.findViewById(R.id.close_btn);
+
+        name.setText(driver.getDriverDetails().getName());
+        source.setText(driver.getSource());
+        destination.setText(driver.getDestination());
+        availableSeats.setText(driver.getAvailableSeats() + " Seat(s)");
+
+        if (driver.getDriverDetails().getImage_url() != null) {
+            Picasso.get()
+                    .load(driver.getDriverDetails().getImage_url())
+                    .placeholder(R.drawable.image_avataar)
+                    .into(profileImage);
+        }
+
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        sendRequestBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //To be continue
+            }
+        });
+
+
+        dialog.show();
     }
 
     private class FetchUrl extends AsyncTask<String, Void, String> {

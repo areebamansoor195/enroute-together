@@ -2,6 +2,10 @@ package com.example.areebamansoor.enroutetogether;
 
 import android.content.Context;
 import android.support.multidex.MultiDexApplication;
+import android.util.Log;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class AppClass extends MultiDexApplication {
 

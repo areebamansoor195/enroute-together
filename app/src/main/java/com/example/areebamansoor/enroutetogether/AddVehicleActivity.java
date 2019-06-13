@@ -1,6 +1,7 @@
 package com.example.areebamansoor.enroutetogether;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -122,7 +123,9 @@ public class AddVehicleActivity extends AppCompatActivity {
                         Firebase.getInstance().mDatabase.child(VEHICLE).child(vehicle_id + "").removeEventListener(valueEventListener);
                         progressDialog.dismiss();
                         SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
+                        SharedPreferencHandler.setUser(new Gson().toJson(user));
                         Toast.makeText(AddVehicleActivity.this, "Vehicle add successfully", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(AddVehicleActivity.this, OfferRideActivity.class));
                         finish();
                     }
 

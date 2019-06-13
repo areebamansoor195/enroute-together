@@ -78,5 +78,64 @@
 
         </FrameLayout>
 
+        <FrameLayout
+            android:id="@+id/seat_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="?android:attr/actionBarSize"
+            android:background="@color/colorGrayTransparent"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp">
+
+                <ImageView
+                    android:id="@+id/cancel_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:src="@android:drawable/ic_delete" />
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/cancel_btn"
+                    android:text="Select No. of Seats"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+                    android:textColor="@color/colorWhite" />
+
+                <com.isapanah.awesomespinner.AwesomeSpinner
+                    android:id="@+id/capacity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/title"
+                    android:layout_marginTop="20dp"
+                    android:background="@color/colorWhite"
+                    app:spinnerDirection="ltr"
+                    app:spinnerHint="@string/capacity_prompt" />
+
+                <Button
+                    android:id="@+id/done_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/capacity"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginRight="20dp"
+                    android:background="@color/colorPrimaryDark"
+                    android:padding="10dp"
+                    android:text="Done"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="17sp" />
+
+
+            </RelativeLayout>
+
+        </FrameLayout>
+
     </RelativeLayout>
 </layout>
