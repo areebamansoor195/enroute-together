@@ -9,7 +9,7 @@ public class Constants {
     public static final String VEHICLE_OBJECT = "vehicle_object";
 
     public static final String SERVER_KEY = "key=AAAAGTdX1xo:APA91bG0A7oqFjSD37OiFxGcxEq8NEb1SpK59GAoh5IHXqh8a6vOzRTD6Ad_dtsukXC1bi5nxah7rte97yuC9urvBozn0xzCp7z94qNdtq9BsuXfoAv35ZO1fGQDNH8apzdETURA1Nd9";
-    public static final String FCM_URL = "fcm.googleapis.com/fcm/send";
+    public static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
 
     //Driver statuses
     public static final String OFFLINE = "OFFLINE";

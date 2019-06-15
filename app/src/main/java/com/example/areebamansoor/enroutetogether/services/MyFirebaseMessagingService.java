@@ -1,10 +1,17 @@
 package com.example.areebamansoor.enroutetogether.services;
 
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import com.example.areebamansoor.enroutetogether.R;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -21,49 +28,27 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
 
-        Log.e(TAG, "From: " + remoteMessage.getFrom());
-
-        Log.d(TAG, remoteMessage.getData().toString());
-
+        Log.e(TAG, remoteMessage.getData().toString());
+        sendNotification(remoteMessage.getData().toString());
 
     }
 
 
     private void sendNotification(String msg) {
 
-       /* mediaPlayer = MediaPlayer.create(this, R.raw.notification);
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.start();
-
-        alarmNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-//        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        //Create notification
-        NotificationCompat.Builder alamNotificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.icon)
-                .setContentTitle("Bus On Time")
-                .setWhen(5000)
-                .setContentIntent(pendingIntent)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
+        Notification notification = new NotificationCompat.Builder(this)
+                .setContentTitle("Job Request")
                 .setContentText(msg)
-                .setAutoCancel(true)
-                .setDefaults(Notification.DEFAULT_SOUND);
-
-        //notiy notification manager about new notification
-        alarmNotificationManager.notify(1, alamNotificationBuilder.build());*/
+                //.setSmallIcon(icon)
+                .build();
+        NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+        manager.notify(/*notification id*/0, notification);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void createNotificationChannel(String msg) {
 
-     /*   mediaPlayer = MediaPlayer.create(this, R.raw.notification);
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.start();
-
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+       /* NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.deleteNotificationChannel(CHANNEL_ID);
 
         CharSequence name = this.getString(R.string.channel_name);// The user-visible name of the channel.

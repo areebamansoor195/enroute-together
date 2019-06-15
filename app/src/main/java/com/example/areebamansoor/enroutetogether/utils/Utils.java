@@ -13,15 +13,21 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 
-import com.example.areebamansoor.enroutetogether.network.GetDataService;
-import com.example.areebamansoor.enroutetogether.network.RetrofitClientInstance;
+import com.android.volley.AuthFailureError;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.areebamansoor.enroutetogether.AppClass;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -105,19 +111,25 @@ public class Utils {
             e.printStackTrace();
         }
 
-        GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
-        Call<JsonElement> call = service.sendFCMRequest(jsonBody, Constants.SERVER_KEY, "application/json");
-        call.enqueue(new Callback<JsonElement>() {
+        JsonObjectRequest request = new JsonObjectRequest(Constants.FCM_URL, jsonBody, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+            public void onResponse(JSONObject response) {
+                Log.e("SEND_FCM", new Gson().toJson(response));
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
 
             }
-
+        }) {
             @Override
-            public void onFailure(Call<JsonElement> call, Throwable t) {
-
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Authorization", Constants.SERVER_KEY);
+                headers.put("Content-Type", "application/json");
+                return headers;
             }
-        });
-
+        };
+        AppClass.instance.getRequestQueue().add(request);
     }
 }
