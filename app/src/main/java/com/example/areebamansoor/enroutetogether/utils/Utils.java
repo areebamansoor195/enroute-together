@@ -10,10 +10,21 @@ import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
+
+import com.example.areebamansoor.enroutetogether.network.GetDataService;
+import com.example.areebamansoor.enroutetogether.network.RetrofitClientInstance;
+import com.google.gson.JsonElement;
+
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class Utils {
 
@@ -76,4 +87,37 @@ public class Utils {
         return bitmap;
     }
 
+
+    public static void sendFCM(String sendTo, String message) {
+
+        JSONObject jsonBody = null;
+        try {
+            jsonBody = new JSONObject("{\n" +
+                    "  \"time_to_live\": 0,\n" +
+                    "  \"to\":\"" + sendTo + "\",\n" +
+                    "  \"data\": {\n" +
+                    "    \"Notification\": \"" + message + "\"\n" +
+                    "  }\n" +
+                    "}");
+
+            Log.e("SEND_FCM", jsonBody + "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
+        Call<JsonElement> call = service.sendFCMRequest(jsonBody, Constants.SERVER_KEY, "application/json");
+        call.enqueue(new Callback<JsonElement>() {
+            @Override
+            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<JsonElement> call, Throwable t) {
+
+            }
+        });
+
+    }
 }

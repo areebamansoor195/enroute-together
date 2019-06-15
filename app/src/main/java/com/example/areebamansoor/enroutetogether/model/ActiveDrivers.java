@@ -14,9 +14,18 @@ public class ActiveDrivers implements Serializable {
     private String timeStamp;
     private String availableSeats;
     private String driverDetails;
+    private String fcmDeviceId;
     private String vehicleDetails;
 
     public ActiveDrivers() {
+    }
+
+    public String getFcmDeviceId() {
+        return fcmDeviceId;
+    }
+
+    public void setFcmDeviceId(String fcmDeviceId) {
+        this.fcmDeviceId = fcmDeviceId;
     }
 
     public User getDriverDetails() {

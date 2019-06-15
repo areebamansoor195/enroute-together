@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
@@ -34,10 +36,13 @@ import static com.example.areebamansoor.enroutetogether.utils.Constants.VEHICLE;
 public class Gen_HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String TAG = "HomeActivity";
     Button btn_offer, btn_book, btn_help, btn_manageprofile, btnMyRides;
     private User user;
     private ValueEventListener valueEventListener;
     private ProgressDialog progressDialog;
+    private View header;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,10 +158,21 @@ public class Gen_HomeActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        View header = navigationView.getHeaderView(0);
+        if (SharedPreferencHandler.getDeviceId().equalsIgnoreCase("")) {
+            Log.e(TAG, FirebaseInstanceId.getInstance().getToken());
+            SharedPreferencHandler.setDeviceId(FirebaseInstanceId.getInstance().getToken());
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
+        header = navigationView.getHeaderView(0);
         TextView email = (TextView) header.findViewById(R.id.email);
         CircleImageView profileImg = header.findViewById(R.id.profile_image);
 
@@ -168,7 +184,6 @@ public class Gen_HomeActivity extends AppCompatActivity
 
         email.setText(user.getEmail() + "");
     }
-
 
     @Override
     public void onBackPressed() {

@@ -346,6 +346,8 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                     }
 
                     activePassengers.setTimeStamp(Utils.getCurrentDateTime());
+                    activePassengers.setFcmDeviceId(SharedPreferencHandler.getDeviceId());
+
                     myBookRides.add(activePassengers);
 
                     Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).child(user.getUserId()).
@@ -500,8 +502,8 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                 CircleImageView profile_img = marker.findViewById(R.id.profileImage);
                 Log.e(TAG, activeDriver.getDriverDetails().getImage_url());
                 Picasso.get()
-                        .load(user.getImage_url())
-                        .placeholder(R.drawable.image_avataar)
+                        .load(activeDriver.getDriverDetails().getImage_url())
+                        .placeholder(R.drawable.icon2)
                         .into(profile_img);
             }
 
@@ -929,7 +931,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         return false;
     }
 
-    private void openDialog(ActiveDrivers driver) {
+    private void openDialog(final ActiveDrivers driver) {
 
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -937,6 +939,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
         Button sendRequestBtn = dialog.findViewById(R.id.btn_send_req);
         TextView name = dialog.findViewById(R.id.driverName);
+        TextView gender = dialog.findViewById(R.id.gender);
         TextView source = dialog.findViewById(R.id.source);
         TextView destination = dialog.findViewById(R.id.destination);
         TextView availableSeats = dialog.findViewById(R.id.availableSeats);
@@ -944,6 +947,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         ImageView closeBtn = dialog.findViewById(R.id.close_btn);
 
         name.setText(driver.getDriverDetails().getName());
+        gender.setText(driver.getDriverDetails().getGender());
         source.setText(driver.getSource());
         destination.setText(driver.getDestination());
         availableSeats.setText(driver.getAvailableSeats() + " Seat(s)");
@@ -951,7 +955,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         if (driver.getDriverDetails().getImage_url() != null) {
             Picasso.get()
                     .load(driver.getDriverDetails().getImage_url())
-                    .placeholder(R.drawable.image_avataar)
+                    .placeholder(R.drawable.icon2)
                     .into(profileImage);
         }
 
@@ -965,7 +969,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         sendRequestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //To be continue
+                Utils.sendFCM(driver.getFcmDeviceId(), "Hello driver");
             }
         });
 

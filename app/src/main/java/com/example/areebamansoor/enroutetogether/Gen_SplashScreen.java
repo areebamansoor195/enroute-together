@@ -8,9 +8,11 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.example.areebamansoor.enroutetogether.databinding.ActivityGenSplashscreenBinding;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class Gen_SplashScreen extends AppCompatActivity {
 
@@ -21,7 +23,7 @@ public class Gen_SplashScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_gen_splashscreen);
 
-        binding.appVersion.setText("Version " + getAppVersion());
+
 
         new Handler().postDelayed(new Runnable() {
             @Override

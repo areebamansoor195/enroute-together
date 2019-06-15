@@ -21,6 +21,15 @@ public class SharedPreferencHandler {
         editor.apply();
     }
 
+    public static String getDeviceId() {
+        return preferences.getString(Constants.DEVICE_ID, "");
+    }
+
+    public static void setDeviceId(String deviceId) {
+        editor.putString(Constants.DEVICE_ID, deviceId);
+        editor.apply();
+    }
+
     public static String getVehicle() {
         return preferences.getString(Constants.VEHICLE_OBJECT, "");
     }

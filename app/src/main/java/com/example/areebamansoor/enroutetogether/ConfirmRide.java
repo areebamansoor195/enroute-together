@@ -130,15 +130,14 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
                     }
 
                     activeDrivers.setTimeStamp(Utils.getCurrentDateTime());
+                    activeDrivers.setFcmDeviceId(SharedPreferencHandler.getDeviceId());
 
                     myOfferRides.add(activeDrivers);
 
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).child(user.getUserId()).
-                            setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    activeDriverRef.setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             progressDialog.dismiss();
-                            Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
                             Log.e(TAG, "Child added");
                             startActivity(new Intent(ConfirmRide.this, MyRidesActivity.class));
                             finish();
@@ -154,7 +153,6 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
-                    progressDialog.dismiss();
                 }
             };
             activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
