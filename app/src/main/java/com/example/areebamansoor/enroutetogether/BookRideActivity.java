@@ -969,7 +969,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         sendRequestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utils.sendFCM(driver.getFcmDeviceId(), "Hello driver");
+                Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request", "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you");
             }
         });
 

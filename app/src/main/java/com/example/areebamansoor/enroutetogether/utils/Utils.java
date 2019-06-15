@@ -18,7 +18,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.areebamansoor.enroutetogether.AppClass;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 
 import org.json.JSONObject;
 
@@ -26,11 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class Utils {
 
@@ -94,7 +88,7 @@ public class Utils {
     }
 
 
-    public static void sendFCM(String sendTo, String message) {
+    public static void sendFCM(String sendTo, String notificationType, String title, String body) {
 
         JSONObject jsonBody = null;
         try {
@@ -102,7 +96,9 @@ public class Utils {
                     "  \"time_to_live\": 0,\n" +
                     "  \"to\":\"" + sendTo + "\",\n" +
                     "  \"data\": {\n" +
-                    "    \"Notification\": \"" + message + "\"\n" +
+                    "    \"notification\": \"" + notificationType + "\",\n" +
+                    "\"title\": \"" + title + "\",\n" +
+                    "\"body\": \"" + body + "\"\n" +
                     "  }\n" +
                     "}");
 
