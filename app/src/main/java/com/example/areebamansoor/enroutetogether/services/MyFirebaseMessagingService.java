@@ -80,25 +80,5 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationManager.notify(1, alamNotificationBuilder.build());
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void createNotificationChannel(String msg) {
-
-       /* NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.deleteNotificationChannel(CHANNEL_ID);
-
-        CharSequence name = this.getString(R.string.channel_name);// The user-visible name of the channel.
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-        mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.icon)
-                .setContentTitle("Bus On Time")
-                .setContentText(msg)
-                .setDefaults(Notification.DEFAULT_SOUND);
-
-        notificationManager.createNotificationChannel(mChannel);
-
-        notificationManager.notify(1, notification.build());*/
-    }
 
 }

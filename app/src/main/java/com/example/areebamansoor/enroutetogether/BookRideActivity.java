@@ -39,6 +39,7 @@ import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.DataParser;
+import com.example.areebamansoor.enroutetogether.utils.FcmCallback;
 import com.example.areebamansoor.enroutetogether.utils.MapAnimator;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.example.areebamansoor.enroutetogether.utils.Utils;
@@ -494,7 +495,8 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         driverMarkers.clear();
 
         for (ActiveDrivers activeDriver : availableDriverList) {
-            String[] latLngString = activeDriver.getCurrentLatlng().split(",");
+            String initialLatLng = activeDriver.getCurrentLatlng() != null ? activeDriver.getCurrentLatlng() : activeDriver.getSourceLatLng();
+            String[] latLngString = initialLatLng.split(",");
             LatLng driverPosition = new LatLng(Double.parseDouble(latLngString[0]), Double.parseDouble(latLngString[1]));
             View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
 
@@ -969,7 +971,21 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         sendRequestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request", "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you");
+                FcmCallback fcmCallback = new FcmCallback() {
+                    @Override
+                    public void onResponse(String response) {
+                        dialog.dismiss();
+                        Toast.makeText(BookRideActivity.this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(String reponse) {
+                        dialog.dismiss();
+                        Toast.makeText(BookRideActivity.this, "Unable to send request", Toast.LENGTH_SHORT).show();
+                    }
+                };
+                Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request",
+                        "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you", fcmCallback);
             }
         });
 

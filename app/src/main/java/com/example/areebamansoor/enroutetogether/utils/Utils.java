@@ -88,7 +88,7 @@ public class Utils {
     }
 
 
-    public static void sendFCM(String sendTo, String notificationType, String title, String body) {
+    public static void sendFCM(String sendTo, String notificationType, String title, String body, final FcmCallback fcmCallback) {
 
         JSONObject jsonBody = null;
         try {
@@ -111,11 +111,15 @@ public class Utils {
             @Override
             public void onResponse(JSONObject response) {
                 Log.e("SEND_FCM", new Gson().toJson(response));
+                if (fcmCallback != null)
+                    fcmCallback.onResponse(new Gson().toJson(response));
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
 
+                if (fcmCallback != null)
+                    fcmCallback.onResponse(error.getMessage());
             }
         }) {
             @Override
