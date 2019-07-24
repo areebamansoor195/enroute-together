@@ -39,6 +39,8 @@ public class FragmentOfferRides extends Fragment {
     private ValueEventListener valueEventListener;
     private User user;
 
+    private DatabaseReference activeDriverRef;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,15 +68,14 @@ public class FragmentOfferRides extends Fragment {
 
     private void getMyOfferRides() {
 
-        final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
+        activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
 
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                activeDriverRef.removeEventListener(valueEventListener);
-
                 binding.progress.setVisibility(GONE);
+                activeDriversList.clear();
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
                     ActiveDrivers activeDrivers = data.getValue(ActiveDrivers.class);
@@ -98,9 +99,14 @@ public class FragmentOfferRides extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                activeDriverRef.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
             }
         };
         activeDriverRef.addValueEventListener(valueEventListener);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        activeDriverRef.removeEventListener(valueEventListener);
     }
 }

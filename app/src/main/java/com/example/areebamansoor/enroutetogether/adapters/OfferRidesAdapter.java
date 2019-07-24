@@ -2,9 +2,11 @@ package com.example.areebamansoor.enroutetogether.adapters;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.example.areebamansoor.enroutetogether.R;
@@ -35,6 +37,18 @@ public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.My
         holder.source.setText(activeDrivers.getSource());
         holder.destination.setText(activeDrivers.getDestination());
         holder.dateTime.setText(activeDrivers.getTimeStamp().split("\\.")[0]);
+
+        if (activeDrivers.getPassengerRequests() != null) {
+            if (!activeDrivers.getPassengerRequests().contains(",")) {
+                holder.notifications.setText("1");
+            } else {
+                String[] passengers = activeDrivers.getPassengerRequests().split(",");
+                Log.e("Offer ride adapter", passengers.length + "");
+                holder.notifications.setText(passengers.length + "");
+            }
+        } else {
+            holder.notification_view.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -43,13 +57,16 @@ public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.My
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView source, destination, dateTime;
+        private TextView source, destination, dateTime, notifications;
+        private FrameLayout notification_view;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             source = itemView.findViewById(R.id.source);
             destination = itemView.findViewById(R.id.destination);
             dateTime = itemView.findViewById(R.id.date_time);
+            notifications = itemView.findViewById(R.id.notifications);
+            notification_view = itemView.findViewById(R.id.notification_view);
         }
     }
 }

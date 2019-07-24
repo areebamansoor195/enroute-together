@@ -329,7 +329,16 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
             progressDialog.show();
 
+            User passengerDetail = new User();
+            passengerDetail.setName(user.getName());
+            passengerDetail.setImage_url(user.getImage_url());
+            passengerDetail.setGender(user.getGender());
+            passengerDetail.setUserId(user.getUserId());
+            if (user.getPhone_number() != null)
+                passengerDetail.setPhone_number(user.getPhone_number());
+
             activePassengers.setUserId(user.getUserId());
+            activePassengers.setPassengerDetails(passengerDetail);
 
             final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
             valueEventListener = new ValueEventListener() {
@@ -402,7 +411,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         for (DataSnapshot dataSnapshot1 : data.getChildren()) {
                             ActiveDrivers driver = dataSnapshot1.getValue(ActiveDrivers.class);
 
-                            if (checkDriverParameters(driver)) {
+                            if (driver.getDriverDetails().getUserId() != user.getUserId() && checkDriverParameters(driver)) {
                                 availableDriverList.add(driver);
                             }
                         }
@@ -971,11 +980,14 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         sendRequestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 FcmCallback fcmCallback = new FcmCallback() {
                     @Override
                     public void onResponse(String response) {
                         dialog.dismiss();
                         Toast.makeText(BookRideActivity.this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+                        finish();
+                        startActivity(new Intent(BookRideActivity.this, MyRidesActivity.class));
                     }
 
                     @Override
@@ -985,7 +997,10 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                     }
                 };
                 Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request",
-                        "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you", fcmCallback);
+                        "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you", user.getUserId(), fcmCallback);
+
+                /*Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request",
+                        "Hello " + driver.getDriverDetails().getName(), activePassengers, fcmCallback);*/
             }
         });
 

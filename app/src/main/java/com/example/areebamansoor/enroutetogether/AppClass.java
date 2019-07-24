@@ -13,6 +13,7 @@ import java.util.Calendar;
 public class AppClass extends MultiDexApplication {
 
     public static AppClass instance;
+
     private RequestQueue mRequestQueue;
 
 

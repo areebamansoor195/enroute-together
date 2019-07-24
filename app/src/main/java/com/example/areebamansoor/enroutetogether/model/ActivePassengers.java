@@ -1,5 +1,7 @@
 package com.example.areebamansoor.enroutetogether.model;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 
 public class ActivePassengers implements Serializable {
@@ -12,8 +14,17 @@ public class ActivePassengers implements Serializable {
     private String fcmDeviceId;
     private String requestedSeats;
     private String timeStamp;
+    private String passengerDetails;
 
     public ActivePassengers() {
+    }
+
+    public User getPassengerDetails() {
+        return new Gson().fromJson(passengerDetails, User.class);
+    }
+
+    public void setPassengerDetails(User passengerDetails) {
+        this.passengerDetails = new Gson().toJson(passengerDetails);
     }
 
     public String getFcmDeviceId() {

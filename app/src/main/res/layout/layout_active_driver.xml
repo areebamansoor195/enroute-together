@@ -74,6 +74,34 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp">
 
+            <FrameLayout
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:id="@+id/notification_view"
+                android:layout_marginRight="10dp"
+                android:layout_toLeftOf="@id/datetime_icon">
+
+
+                <ImageView
+                    android:id="@+id/requestImage"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/notification" />
+
+                <TextView
+                    android:layout_width="12dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:background="@android:color/holo_red_dark"
+                    android:text="1"
+                    android:id="@+id/notifications"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="10dp" />
+
+            </FrameLayout>
+
+
             <ImageView
                 android:id="@+id/datetime_icon"
                 android:layout_width="25dp"

@@ -122,12 +122,14 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
                     activeDriverRef.removeEventListener(valueEventListener);
 
                     Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+
                     List<ActiveDrivers> myOfferRides = new ArrayList<>();
 
                     for (DataSnapshot data : dataSnapshot.getChildren()) {
                         ActiveDrivers activeDriverTemp = data.getValue(ActiveDrivers.class);
                         myOfferRides.add(activeDriverTemp);
                     }
+
 
                     activeDrivers.setTimeStamp(Utils.getCurrentDateTime());
                     activeDrivers.setFcmDeviceId(SharedPreferencHandler.getDeviceId());
@@ -152,7 +154,7 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).removeEventListener(valueEventListener);
+                    activeDriverRef.removeEventListener(valueEventListener);
                 }
             };
             activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
