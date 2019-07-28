@@ -67,49 +67,53 @@ public class Gen_HomeActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                if (SharedPreferencHandler.getVehicle().equalsIgnoreCase("")) {
+                if (!SharedPreferencHandler.getPendingOfferRide()) {
+                    if (SharedPreferencHandler.getVehicle().equalsIgnoreCase("")) {
 
-                    if (user.getVehicleId() == null) {
-                        Intent intent = new Intent(Gen_HomeActivity.this, AddVehicleActivity.class);
-                        startActivity(intent);
-                        return;
-                    }
-                    progressDialog.show();
+                        if (user.getVehicleId() == null) {
+                            Intent intent = new Intent(Gen_HomeActivity.this, AddVehicleActivity.class);
+                            startActivity(intent);
+                            return;
+                        }
+                        progressDialog.show();
 
-                    final DatabaseReference vehicleRef = FirebaseDatabase.getInstance().getReference(VEHICLE).child(user.getVehicleId());
+                        final DatabaseReference vehicleRef = FirebaseDatabase.getInstance().getReference(VEHICLE).child(user.getVehicleId());
 
-                    valueEventListener = new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            progressDialog.dismiss();
+                        valueEventListener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                progressDialog.dismiss();
 
-                            vehicleRef.removeEventListener(valueEventListener);
+                                vehicleRef.removeEventListener(valueEventListener);
 
-                            Vehicle vehicle = dataSnapshot.getValue(Vehicle.class);
-                            if (vehicle != null) {
-                                SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
-                                //Go to offer ride
-                                Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
-                                startActivity(intent);
-                                return;
+                                Vehicle vehicle = dataSnapshot.getValue(Vehicle.class);
+                                if (vehicle != null) {
+                                    SharedPreferencHandler.setVehicle(new Gson().toJson(vehicle));
+                                    //Go to offer ride
+                                    Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
+                                    startActivity(intent);
+                                    return;
+                                }
+
                             }
 
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            progressDialog.dismiss();
-                            vehicleRef.removeEventListener(valueEventListener);
-                        }
-                    };
-                    vehicleRef.addListenerForSingleValueEvent(valueEventListener);
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                progressDialog.dismiss();
+                                vehicleRef.removeEventListener(valueEventListener);
+                            }
+                        };
+                        vehicleRef.addListenerForSingleValueEvent(valueEventListener);
 
 
+                    } else {
+                        //Go to offer ride
+                        Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
+                        startActivity(intent);
+
+                    }
                 } else {
-                    //Go to offer ride
-                    Intent intent = new Intent(Gen_HomeActivity.this, OfferRideActivity.class);
-                    startActivity(intent);
-
+                    Toast.makeText(Gen_HomeActivity.this, "Complete your previous ride first", Toast.LENGTH_SHORT).show();
                 }
 
 
@@ -119,8 +123,13 @@ public class Gen_HomeActivity extends AppCompatActivity
         btn_book.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
-                startActivity(intent);
+                if (!SharedPreferencHandler.getPendingBookRide()) {
+                    Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(Gen_HomeActivity.this, "Complete your previous ride first", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
@@ -235,6 +244,8 @@ public class Gen_HomeActivity extends AppCompatActivity
             SharedPreferencHandler.setIsLogin(false);
             SharedPreferencHandler.setUser("");
             SharedPreferencHandler.setVehicle("");
+            SharedPreferencHandler.setHasPendingOfferRide(false);
+            SharedPreferencHandler.setHasPendingBookRide(false);
             finish();
             startActivity(new Intent(this, Gen_LoginForm.class));
 

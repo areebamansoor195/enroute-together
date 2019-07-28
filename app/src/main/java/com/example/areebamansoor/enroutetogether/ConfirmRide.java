@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.areebamansoor.enroutetogether.databinding.ActivityConfirmRideBinding;
-import com.example.areebamansoor.enroutetogether.firebase.Firebase;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.model.Vehicle;
@@ -141,6 +140,7 @@ public class ConfirmRide extends AppCompatActivity implements OnMapReadyCallback
                         public void onComplete(@NonNull Task<Void> task) {
                             progressDialog.dismiss();
                             Log.e(TAG, "Child added");
+                            SharedPreferencHandler.setHasPendingOfferRide(true);
                             startActivity(new Intent(ConfirmRide.this, MyRidesActivity.class));
                             finish();
                         }

@@ -1,5 +1,8 @@
 package com.example.areebamansoor.enroutetogether.fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.areebamansoor.enroutetogether.DriverActivity;
 import com.example.areebamansoor.enroutetogether.R;
 import com.example.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.FragmentOfferRidesBinding;
@@ -54,7 +58,7 @@ public class FragmentOfferRides extends Fragment {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_offer_rides, container, false);
 
 
-        adapter = new OfferRidesAdapter(activeDriversList);
+        adapter = new OfferRidesAdapter(this, activeDriversList);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         binding.offerRidesList.setLayoutManager(mLayoutManager);
@@ -64,6 +68,56 @@ public class FragmentOfferRides extends Fragment {
         getMyOfferRides();
 
         return binding.getRoot();
+    }
+
+    public void onClickItem(final ActiveDrivers activeDrivers) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setMessage("Do you want to?")
+                .setCancelable(false)
+                .setPositiveButton("Show", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        Intent intent = new Intent(getActivity(), DriverActivity.class);
+                        intent.putExtra("Job", new Gson().toJson(activeDrivers));
+                        startActivity(intent);
+                        getActivity().finish();
+                    }
+                })
+                .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(activeDrivers.getDriverDetails().getUserId());
+                        valueEventListener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                currentRideRef.removeEventListener(valueEventListener);
+                                for (DataSnapshot data : dataSnapshot.getChildren()) {
+
+                                    ActiveDrivers mCurrentRide = data.getValue(ActiveDrivers.class);
+                                    if (mCurrentRide != null) {
+                                        if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activeDrivers.getTimeStamp()))
+                                            currentRideRef.child(data.getKey()).removeValue();
+                                    }
+                                }
+
+                                SharedPreferencHandler.setHasPendingOfferRide(false);
+                                activeDriversList.remove(activeDrivers);
+                                adapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                currentRideRef.removeEventListener(valueEventListener);
+                            }
+                        };
+                        currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
+                        dialog.dismiss();
+                        getMyOfferRides();
+                    }
+                });
+
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     private void getMyOfferRides() {
@@ -85,7 +139,7 @@ public class FragmentOfferRides extends Fragment {
 
                 if (activeDriversList.size() > 0) {
 
-                    adapter = new OfferRidesAdapter(activeDriversList);
+                    adapter = new OfferRidesAdapter(FragmentOfferRides.this, activeDriversList);
 
                     RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
                     binding.offerRidesList.setLayoutManager(mLayoutManager);

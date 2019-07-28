@@ -41,7 +41,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
         progressDialog.setMessage("Please wait...");
         binding.toolbarLayout.toolbar.setTitle("Active Drivers");
 
-        adapter = new OfferRidesAdapter(activeDriversList);
+        adapter = new OfferRidesAdapter(null, activeDriversList);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         binding.activeDriversList.setLayoutManager(mLayoutManager);
@@ -70,7 +70,7 @@ public class ActiveDriversActivity extends AppCompatActivity {
 
                 if (activeDriversList.size() > 0) {
 
-                    adapter = new OfferRidesAdapter(activeDriversList);
+                    adapter = new OfferRidesAdapter(null, activeDriversList);
 
                     RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
                     binding.activeDriversList.setLayoutManager(mLayoutManager);

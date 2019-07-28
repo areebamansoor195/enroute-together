@@ -1,5 +1,7 @@
 package com.example.areebamansoor.enroutetogether.fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,9 +16,7 @@ import android.view.ViewGroup;
 
 import com.example.areebamansoor.enroutetogether.R;
 import com.example.areebamansoor.enroutetogether.adapters.BookRidesAdapter;
-import com.example.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.FragmentBookRidesBinding;
-import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
@@ -55,7 +55,7 @@ public class FragmentBookRides extends Fragment {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_rides, container, false);
 
 
-        adapter = new BookRidesAdapter(activePassengersList);
+        adapter = new BookRidesAdapter(this, activePassengersList);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         binding.bookRidesList.setLayoutManager(mLayoutManager);
@@ -67,7 +67,54 @@ public class FragmentBookRides extends Fragment {
         return binding.getRoot();
     }
 
-    private void getMyBookRides() {
+    public void onClickItem(final ActivePassengers activePassengers) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setMessage("Do you want to?")
+                .setCancelable(false)
+                .setPositiveButton("Show", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+
+                    }
+                })
+                .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(activePassengers.getUserId());
+                        valueEventListener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                currentRideRef.removeEventListener(valueEventListener);
+                                for (DataSnapshot data : dataSnapshot.getChildren()) {
+
+                                    ActivePassengers mCurrentRide = data.getValue(ActivePassengers.class);
+                                    if (mCurrentRide != null) {
+                                        if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activePassengers.getTimeStamp()))
+                                            currentRideRef.child(data.getKey()).removeValue();
+                                    }
+                                }
+
+                                SharedPreferencHandler.setHasPendingBookRide(false);
+                                activePassengersList.remove(activePassengers);
+                                adapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                currentRideRef.removeEventListener(valueEventListener);
+                            }
+                        };
+                        currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
+                        dialog.dismiss();
+                        getMyBookRides();
+                    }
+                });
+
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    public void getMyBookRides() {
 
         final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
 
@@ -80,14 +127,14 @@ public class FragmentBookRides extends Fragment {
                 binding.progress.setVisibility(GONE);
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    ActivePassengers activePassengers= data.getValue(ActivePassengers.class);
+                    ActivePassengers activePassengers = data.getValue(ActivePassengers.class);
 
                     activePassengersList.add(activePassengers);
                 }
 
                 if (activePassengersList.size() > 0) {
 
-                    adapter = new BookRidesAdapter(activePassengersList);
+                    adapter = new BookRidesAdapter(FragmentBookRides.this, activePassengersList);
 
                     RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
                     binding.bookRidesList.setLayoutManager(mLayoutManager);

@@ -4,6 +4,8 @@ package com.example.areebamansoor.enroutetogether.utils;
 public class Constants {
 
     public static final String LOGIN = "login";
+    public static final String HAS_PENDING_OFFER_RIDE = "has_pending_offer_ride";
+    public static final String HAS_PENDING_BOOK_RIDE = "has_pending_book_ride";
     public static final String DEVICE_ID = "device_id";
     public static final String USER_OBJECT = "user_object";
     public static final String VEHICLE_OBJECT = "vehicle_object";

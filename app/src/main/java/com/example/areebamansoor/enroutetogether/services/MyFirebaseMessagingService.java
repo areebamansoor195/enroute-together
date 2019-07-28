@@ -69,6 +69,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private void savePassengerRequest(final String passenger) {
+
         final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
         valueEventListener = new ValueEventListener() {
             @Override

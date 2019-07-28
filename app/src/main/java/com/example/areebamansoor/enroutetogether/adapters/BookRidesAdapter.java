@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.areebamansoor.enroutetogether.R;
+import com.example.areebamansoor.enroutetogether.fragments.FragmentBookRides;
 import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
 
 import java.util.List;
@@ -15,9 +16,11 @@ import java.util.List;
 public class BookRidesAdapter extends RecyclerView.Adapter<BookRidesAdapter.MyViewHolder> {
 
     private List<ActivePassengers> activePassengersList;
+    private FragmentBookRides fragment;
 
-    public BookRidesAdapter(List<ActivePassengers> activePassengersList) {
+    public BookRidesAdapter(FragmentBookRides fragment, List<ActivePassengers> activePassengersList) {
         this.activePassengersList = activePassengersList;
+        this.fragment = fragment;
     }
 
     @NonNull
@@ -31,11 +34,18 @@ public class BookRidesAdapter extends RecyclerView.Adapter<BookRidesAdapter.MyVi
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int i) {
-        ActivePassengers activePassengers = activePassengersList.get(i);
+        final ActivePassengers activePassengers = activePassengersList.get(i);
         holder.pickup.setText(activePassengers.getPickup());
         holder.dropoff.setText(activePassengers.getDropoff());
         holder.dateTime.setText(activePassengers.getTimeStamp().split("\\.")[0]);
-        holder.requestedSeats.setText(activePassengers.getRequestedSeats()+" Seat(s)");
+        holder.requestedSeats.setText(activePassengers.getRequestedSeats() + " Seat(s)");
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragment.onClickItem(activePassengers);
+            }
+        });
     }
 
     @Override

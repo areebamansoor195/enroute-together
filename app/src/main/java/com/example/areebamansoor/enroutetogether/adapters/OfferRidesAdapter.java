@@ -10,6 +10,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.example.areebamansoor.enroutetogether.R;
+import com.example.areebamansoor.enroutetogether.fragments.FragmentOfferRides;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 
 import java.util.List;
@@ -17,9 +18,11 @@ import java.util.List;
 public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.MyViewHolder> {
 
     private List<ActiveDrivers> activeDriversList;
+    private FragmentOfferRides fragmentOfferRides;
 
-    public OfferRidesAdapter(List<ActiveDrivers> activeDriversList) {
+    public OfferRidesAdapter(FragmentOfferRides fragmentOfferRides, List<ActiveDrivers> activeDriversList) {
         this.activeDriversList = activeDriversList;
+        this.fragmentOfferRides = fragmentOfferRides;
     }
 
     @NonNull
@@ -33,10 +36,11 @@ public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.My
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int i) {
-        ActiveDrivers activeDrivers = activeDriversList.get(i);
+        final ActiveDrivers activeDrivers = activeDriversList.get(i);
         holder.source.setText(activeDrivers.getSource());
         holder.destination.setText(activeDrivers.getDestination());
         holder.dateTime.setText(activeDrivers.getTimeStamp().split("\\.")[0]);
+
 
         if (activeDrivers.getPassengerRequests() != null) {
             if (!activeDrivers.getPassengerRequests().contains(",")) {
@@ -49,6 +53,13 @@ public class OfferRidesAdapter extends RecyclerView.Adapter<OfferRidesAdapter.My
         } else {
             holder.notification_view.setVisibility(View.GONE);
         }
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragmentOfferRides.onClickItem(activeDrivers);
+            }
+        });
     }
 
     @Override

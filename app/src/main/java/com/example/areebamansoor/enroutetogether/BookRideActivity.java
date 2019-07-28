@@ -367,6 +367,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                             Log.e(TAG, "Child added");
                             binding.clearBtn.setVisibility(GONE);
                             binding.selectLocationBtn.setVisibility(GONE);
+                            SharedPreferencHandler.setHasPendingBookRide(true);
                             getActiveDrivers(true);
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -411,7 +412,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         for (DataSnapshot dataSnapshot1 : data.getChildren()) {
                             ActiveDrivers driver = dataSnapshot1.getValue(ActiveDrivers.class);
 
-                            if (driver.getDriverDetails().getUserId() != user.getUserId() && checkDriverParameters(driver)) {
+                            if (!driver.getDriverDetails().getUserId().equalsIgnoreCase(user.getUserId()) && checkDriverParameters(driver)) {
                                 availableDriverList.add(driver);
                             }
                         }
@@ -430,6 +431,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         Toast.makeText(BookRideActivity.this, "No Driver Found", Toast.LENGTH_SHORT).show();
                         return;
                     }
+
 
                     showDrivers();
                 }
@@ -834,6 +836,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                         };
                         currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
                         dialog.dismiss();
+                        SharedPreferencHandler.setHasPendingBookRide(false);
                         finish();
                     }
                 })
@@ -999,8 +1002,6 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                 Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request",
                         "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you", user.getUserId(), fcmCallback);
 
-                /*Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request",
-                        "Hello " + driver.getDriverDetails().getName(), activePassengers, fcmCallback);*/
             }
         });
 

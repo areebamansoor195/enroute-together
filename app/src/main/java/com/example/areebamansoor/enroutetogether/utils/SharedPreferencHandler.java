@@ -48,4 +48,23 @@ public class SharedPreferencHandler {
         return preferences.getBoolean(Constants.LOGIN, false);
     }
 
+    public static void setHasPendingBookRide(Boolean hasRide) {
+        editor.putBoolean(Constants.HAS_PENDING_BOOK_RIDE, hasRide);
+        editor.apply();
+    }
+
+    public static Boolean getPendingBookRide() {
+        return preferences.getBoolean(Constants.HAS_PENDING_BOOK_RIDE, false);
+    }
+
+
+    public static void setHasPendingOfferRide(Boolean hasRide) {
+        editor.putBoolean(Constants.HAS_PENDING_OFFER_RIDE, hasRide);
+        editor.apply();
+    }
+
+    public static Boolean getPendingOfferRide() {
+        return preferences.getBoolean(Constants.HAS_PENDING_OFFER_RIDE, false);
+    }
+
 }
