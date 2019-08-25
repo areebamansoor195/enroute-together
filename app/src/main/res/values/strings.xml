@@ -58,6 +58,7 @@
     </string-array>
 
     <string name="model_prompt">Select Model</string>
+
     <string-array name="vehicle_models">
         <item>2019</item>
         <item>2018</item>
@@ -76,4 +77,9 @@
         <item>2005</item>
         <item>Below 2005</item>
     </string-array>
+
+
+    <string name="pickup_label"><b>Pickup</b> : </string>
+    <string name="dropoff_label"><b>Drop-Off</b> : </string>
+    <string name="seats_label"><b>Requested Seats</b> : </string>
 </resources>

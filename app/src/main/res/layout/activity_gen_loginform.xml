@@ -84,8 +84,8 @@
             android:layout_marginLeft="20dp"
             android:layout_marginTop="20dp"
             android:layout_marginRight="20dp"
-            android:background="@color/colorGray"
             android:text="Login"
+            android:background="@color/colorGray"
             android:textColor="@color/colorWhite"
             android:textSize="15dp" />
 

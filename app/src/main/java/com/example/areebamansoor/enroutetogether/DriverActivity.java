@@ -2,6 +2,7 @@ package com.example.areebamansoor.enroutetogether;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,18 +20,33 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
+import com.example.areebamansoor.enroutetogether.adapters.PassengerRequestAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.ActivityDriverBinding;
 import com.example.areebamansoor.enroutetogether.firebase.Firebase;
+import com.example.areebamansoor.enroutetogether.fragments.FragmentOfferRides;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
+import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
+import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.DataParser;
+import com.example.areebamansoor.enroutetogether.utils.FcmCallback;
 import com.example.areebamansoor.enroutetogether.utils.MapAnimator;
+import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.example.areebamansoor.enroutetogether.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -50,10 +66,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -67,6 +89,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
+import static android.view.View.GONE;
+import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVERS;
 import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_PASSENGERS;
 
 public class DriverActivity extends FragmentActivity implements OnMapReadyCallback,
@@ -89,7 +115,13 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
 
     private LatLng myLatLng;
 
-    private ValueEventListener passengersListener;
+    //private ValueEventListener passengersListener;
+    private DatabaseReference activeDriverRef;
+    private ValueEventListener valueEventListener;
+    private User user;
+    List<ActivePassengers> passengersList;
+    private Dialog dialog;
+    private List<Marker> passengerMarkers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +144,8 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
             alertForNoGps();
         }
 
+        user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
+
         myOfferRide = new Gson().fromJson(getIntent().getStringExtra("Job"), ActiveDrivers.class);
         String[] sourceLatLngStr = myOfferRide.getSourceLatLng().split(",");
         String[] destLatLngStr = myOfferRide.getDestinationLatLng().split(",");
@@ -122,6 +156,204 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        if (myOfferRide.getPassengerRequests() != null) {
+            String[] requests = myOfferRide.getPassengerRequests().split(",");
+            Log.e(TAG, requests.length + "");
+            binding.notifications.setText(requests.length + "");
+        }
+
+        activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
+
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ActiveDrivers activeDrivers = null;
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    activeDrivers = data.getValue(ActiveDrivers.class);
+                }
+                myOfferRide = activeDrivers;
+                if (activeDrivers.getPassengerRequests() == null) {
+                    binding.notifications.setText("0");
+                    return;
+                }
+                String[] requestCount = activeDrivers.getPassengerRequests().split(",");
+                binding.notifications.setText(requestCount.length + "");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        activeDriverRef.addValueEventListener(valueEventListener);
+
+        binding.showRequests.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!binding.notifications.getText().toString().equalsIgnoreCase("0"))
+                    showRequestList();
+            }
+        });
+    }
+
+    private void showRequestList() {
+
+        dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_passenger_requests);
+
+        passengersList = new ArrayList<>();
+        passengersList.clear();
+
+        ProgressBar progressBar = dialog.findViewById(R.id.progress);
+        final RecyclerView passenger_request_list = dialog.findViewById(R.id.passenger_request_list);
+
+        String[] requests = myOfferRide.getPassengerRequests().split(",");
+
+        ValueEventListener valueEventListener;
+
+        for (String passengerId : requests) {
+            final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(passengerId);
+
+            valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    ActivePassengers activePassengers = null;
+
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        activePassengers = data.getValue(ActivePassengers.class);
+                    }
+                    passengersList.add(activePassengers);
+                    Log.e(TAG, passengersList.size() + "");
+
+                    PassengerRequestAdapter adapter = new PassengerRequestAdapter(DriverActivity.this, passengersList);
+                    RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(DriverActivity.this);
+                    passenger_request_list.setLayoutManager(mLayoutManager);
+                    passenger_request_list.setItemAnimator(new DefaultItemAnimator());
+                    passenger_request_list.setAdapter(adapter);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                }
+            };
+            activePassengerRef.addValueEventListener(valueEventListener);
+        }
+
+
+        progressBar.setVisibility(GONE);
+        /*
+         */
+
+        Window window = dialog.getWindow();
+        window.setLayout(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT);
+
+        dialog.show();
+    }
+
+    public void onAcceptRide(ActivePassengers activePassengers) {
+        progressDialog.show();
+        FcmCallback fcmCallback = new FcmCallback() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Toast.makeText(DriverActivity.this, "Request accepted successfully", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(String reponse) {
+            }
+        };
+
+        Utils.sendFCM(activePassengers.getFcmDeviceId(), "Accept Request",
+                "Hello " + activePassengers.getPassengerDetails().getName(), user.getName() + " accepted your ride request", user.getUserId(), fcmCallback);
+
+        saveAcceptedPassengers(activePassengers);
+    }
+
+    public void onRejectRide(ActivePassengers activePassengers) {
+
+    }
+
+    private void saveAcceptedPassengers(final ActivePassengers activePassengers) {
+
+        final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                activeDriverRef.removeEventListener(valueEventListener);
+                Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+
+                List<ActiveDrivers> myOfferRides = new ArrayList<>();
+
+
+                /* Remove requested Passengers from firebase  */
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    ActiveDrivers activeDriverTemp = data.getValue(ActiveDrivers.class);
+                    String[] requested = activeDriverTemp.getPassengerRequests().split(",");
+
+                    if (requested.length == 1) {
+                        activeDriverTemp.setPassengerRequests(null);
+                    } else {
+                        StringBuilder newRequestedList = new StringBuilder();
+
+                        for (int i = 0; i < requested.length; i++) {
+                            if (!requested[i].equalsIgnoreCase(activePassengers.getUserId())) {
+                                newRequestedList.append(requested[i] + ",");
+                            }
+                        }
+
+                        String newList = newRequestedList.toString();
+
+                        newList = newList.substring(0, newList.length() - 1);
+                        activeDriverTemp.setPassengerRequests(newList);
+                    }
+
+                    int availableSeats = Integer.parseInt(activeDriverTemp.getAvailableSeats()) - Integer.parseInt(activePassengers.getRequestedSeats());
+
+                    activeDriverTemp.setAvailableSeats(String.valueOf(availableSeats));
+
+                    myOfferRide = activeDriverTemp;
+                    myOfferRides.add(activeDriverTemp);
+                }
+
+
+                /* Add accepted Passengers in firebase  */
+                if (myOfferRides.get(0).getAcceptedPassengers() == null) {
+                    myOfferRides.get(0).setAcceptedPassengers(activePassengers.getUserId());
+                } else {
+                    myOfferRides.get(0).setAcceptedPassengers(myOfferRides.get(0).getAcceptedPassengers() + "," + activePassengers.getUserId());
+                }
+
+
+                activeDriverRef.setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (dialog != null)
+                            dialog.dismiss();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                activeDriverRef.removeEventListener(valueEventListener);
+            }
+        };
+        activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        activeDriverRef.removeEventListener(valueEventListener);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -235,7 +467,6 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         mMap.animateCamera(cu);
     }
 
-
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG, "onConnected");
@@ -272,6 +503,83 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (myOfferRide.getAcceptedPassengers() != null)
+            drawAcceptedPassengers();
+    }
+
+    private void drawAcceptedPassengers() {
+
+        Log.e(TAG, new Gson().toJson(myOfferRide));
+
+        final String[] acceptedPassengers = myOfferRide.getAcceptedPassengers().split(",");
+
+        ValueEventListener valueEventListener;
+
+        final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS);
+
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                ActivePassengers activePassengers = null;
+
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+
+                    for(DataSnapshot dataSnapshot1:data.getChildren()){
+                        activePassengers = dataSnapshot1.getValue(ActivePassengers.class);
+
+                        for (Marker marker : passengerMarkers) {
+                            marker.remove();
+                        }
+                        passengerMarkers.clear();
+
+                        for (String accceptedPassenger : acceptedPassengers) {
+                            if (activePassengers.getUserId().equalsIgnoreCase(accceptedPassenger)) {
+
+                                String initialLatLng = activePassengers.getPickupLatLng();
+                                String[] latLngString = initialLatLng.split(",");
+                                LatLng passengerPosition = new LatLng(Double.parseDouble(latLngString[0]), Double.parseDouble(latLngString[1]));
+                                View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+
+                                if (activePassengers.getPassengerDetails().getImage_url() != null) {
+                                    CircleImageView profile_img = marker.findViewById(R.id.profileImage);
+                                    Log.e(TAG, activePassengers.getPassengerDetails().getImage_url());
+                                    Picasso.get()
+                                            .load(activePassengers.getPassengerDetails().getImage_url())
+                                            .placeholder(R.drawable.icon2)
+                                            .into(profile_img);
+                                }
+
+                                Marker passengerMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(passengerPosition)
+                                        .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(DriverActivity.this, marker))));
+                                passengerMarker.setTag(passengerMarkers.size());
+                                passengerMarkers.add(passengerMarker);
+
+                                adjustBounds(passengerMarkers);
+
+                            }
+
+                        }
+                    }
+
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        activePassengerRef.addValueEventListener(valueEventListener);
+
+
     }
 
     @Override
@@ -357,14 +665,14 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
             mMap.setMyLocationEnabled(true);
         }
 
-        getPassengerRequests();
+        //  getPassengerRequests();
     }
 
     private void getPassengerRequests() {
 
         progressDialog.show();
 
-        passengersListener = new ValueEventListener() {
+       /* passengersListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (progressDialog != null && progressDialog.isShowing())
@@ -379,7 +687,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
 
             }
         };
-        Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).addValueEventListener(passengersListener);
+        Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).addValueEventListener(passengersListener);*/
 
     }
 

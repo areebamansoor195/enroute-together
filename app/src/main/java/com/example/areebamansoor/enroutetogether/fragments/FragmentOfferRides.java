@@ -73,13 +73,11 @@ public class FragmentOfferRides extends Fragment {
     public void onClickItem(final ActiveDrivers activeDrivers) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setMessage("Do you want to?")
-                .setCancelable(false)
                 .setPositiveButton("Show", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int id) {
                         Intent intent = new Intent(getActivity(), DriverActivity.class);
                         intent.putExtra("Job", new Gson().toJson(activeDrivers));
                         startActivity(intent);
-                        getActivity().finish();
                     }
                 })
                 .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
