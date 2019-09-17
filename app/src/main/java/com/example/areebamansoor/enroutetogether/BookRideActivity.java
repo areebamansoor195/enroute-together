@@ -956,8 +956,9 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         TextView gender = dialog.findViewById(R.id.gender);
         TextView source = dialog.findViewById(R.id.source);
         TextView destination = dialog.findViewById(R.id.destination);
+        TextView request_sent = dialog.findViewById(R.id.already_sent);
         TextView availableSeats = dialog.findViewById(R.id.availableSeats);
-        CircleImageView profileImage = dialog.findViewById(R.id.profile_image);
+        final CircleImageView profileImage = dialog.findViewById(R.id.profile_image);
         ImageView closeBtn = dialog.findViewById(R.id.close_btn);
 
         name.setText(driver.getDriverDetails().getName());
@@ -965,6 +966,16 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         source.setText(driver.getSource());
         destination.setText(driver.getDestination());
         availableSeats.setText(driver.getAvailableSeats() + " Seat(s)");
+
+        if (driver.getPassengerRequests() != null) {
+            String[] passengerRequests = driver.getPassengerRequests().split(",");
+            for (String passengerId : passengerRequests) {
+                if (passengerId.equalsIgnoreCase(user.getUserId())) {
+                    sendRequestBtn.setVisibility(View.GONE);
+                    request_sent.setVisibility(View.VISIBLE);
+                }
+            }
+        }
 
         if (driver.getDriverDetails().getImage_url() != null) {
             Picasso.get()
@@ -984,22 +995,24 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onClick(View v) {
 
+                progressDialog.show();
+
                 FcmCallback fcmCallback = new FcmCallback() {
                     @Override
                     public void onResponse(String response) {
-                        dialog.dismiss();
-                        Toast.makeText(BookRideActivity.this, "Request sent successfully", Toast.LENGTH_SHORT).show();
-                        finish();
-                        startActivity(new Intent(BookRideActivity.this, MyRidesActivity.class));
+                        activePassengers.setRequestedDriver(driver.getDriverDetails().getUserId());
+                        updateActivePassenger(dialog);
+
                     }
 
                     @Override
                     public void onFailure(String reponse) {
+                        progressDialog.dismiss();
                         dialog.dismiss();
                         Toast.makeText(BookRideActivity.this, "Unable to send request", Toast.LENGTH_SHORT).show();
                     }
                 };
-                Utils.sendFCM(driver.getFcmDeviceId(), "Passenger Request",
+                Utils.sendFCM(driver.getFcmDeviceId(), RequestTypes.PASSENGER_REQUEST,
                         "Hello " + driver.getDriverDetails().getName(), user.getName() + " wants to travel with you", user.getUserId(), fcmCallback);
 
             }
@@ -1007,6 +1020,47 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
 
         dialog.show();
+    }
+
+    private void updateActivePassenger(final Dialog dialog) {
+
+        final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                activePassengerRef.removeEventListener(valueEventListener);
+
+                Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+                List<ActivePassengers> myBookRides = new ArrayList<>();
+
+                myBookRides.add(activePassengers);
+
+                Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).child(user.getUserId()).
+                        setValue(myBookRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        dialog.dismiss();
+                        Toast.makeText(BookRideActivity.this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+                        finish();
+                        startActivity(new Intent(BookRideActivity.this, MyRidesActivity.class));
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                activePassengerRef.removeEventListener(valueEventListener);
+            }
+        };
+        activePassengerRef.addListenerForSingleValueEvent(valueEventListener);
+
     }
 
     private class FetchUrl extends AsyncTask<String, Void, String> {

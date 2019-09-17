@@ -17,6 +17,7 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.areebamansoor.enroutetogether.AppClass;
+import com.example.areebamansoor.enroutetogether.RequestTypes;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
@@ -88,7 +89,7 @@ public class Utils {
     }
 
 
-    public static void sendFCM(String sendTo, String notificationType, String title, String body, String passengerId, final FcmCallback fcmCallback) {
+    public static void sendFCM(String sendTo, RequestTypes notificationType, String title, String body, String passengerId, final FcmCallback fcmCallback) {
 
         JSONObject jsonBody = null;
         try {
@@ -96,7 +97,7 @@ public class Utils {
                     "  \"time_to_live\": 0,\n" +
                     "  \"to\":\"" + sendTo + "\",\n" +
                     "  \"data\": {\n" +
-                    "    \"notification\": \"" + notificationType + "\",\n" +
+                    "    \"notification\": \"" + notificationType.toString() + "\",\n" +
                     "\"title\": \"" + title + "\",\n" +
                     "\"passengerId\": \"" + passengerId + "\",\n" +
                     "\"body\": \"" + body + "\"\n" +

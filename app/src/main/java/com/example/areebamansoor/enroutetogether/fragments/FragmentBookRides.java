@@ -17,9 +17,14 @@ import android.view.ViewGroup;
 import com.example.areebamansoor.enroutetogether.R;
 import com.example.areebamansoor.enroutetogether.adapters.BookRidesAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.FragmentBookRidesBinding;
+import com.example.areebamansoor.enroutetogether.firebase.Firebase;
+import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -80,6 +85,10 @@ public class FragmentBookRides extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
+
+                        /*if (activePassengers.getRequestedDriver() != null)
+                            deleteRideFromDriver(activePassengers);
+*/
                         final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(activePassengers.getUserId());
                         valueEventListener = new ValueEventListener() {
                             @Override
@@ -112,6 +121,60 @@ public class FragmentBookRides extends Fragment {
 
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void deleteRideFromDriver(final ActivePassengers activePassengers) {
+
+       /* final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(activePassengers.getRequestedDriver());
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                activeDriverRef.removeEventListener(valueEventListener);
+
+                List<ActiveDrivers> driverOfferRides = new ArrayList<>();
+
+                for (DataSnapshot offerRides : dataSnapshot.getChildren()) {
+                    ActiveDrivers ride = offerRides.getValue(ActiveDrivers.class);
+                    driverOfferRides.add(ride);
+                }
+
+                String[] passengerRequests = driverOfferRides.get(0).getPassengerRequests().split(",");
+
+                if (passengerRequests.length == 1) {
+                    driverOfferRides.get(0).setPassengerRequests(null);
+                } else {
+                    driverOfferRides.get(0).setPassengerRequests("");
+                    for (int i = 0; i < passengerRequests.length; i++) {
+                        if (!passengerRequests[i].equalsIgnoreCase(user.getUserId())) {
+                            if (i == 0) {
+                                driverOfferRides.get(0).setPassengerRequests(passengerRequests[i]);
+                            } else {
+                                driverOfferRides.get(0).setPassengerRequests("," + passengerRequests[i]);
+                            }
+                        }
+                    }
+                }
+
+                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).child(activePassengers.getRequestedDriver()).
+                        setValue(driverOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                activeDriverRef.removeEventListener(valueEventListener);
+            }
+        };
+        activeDriverRef.addListenerForSingleValueEvent(valueEventListener);*/
     }
 
     public void getMyBookRides() {

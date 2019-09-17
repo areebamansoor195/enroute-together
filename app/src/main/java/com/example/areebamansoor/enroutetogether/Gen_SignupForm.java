@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import com.example.areebamansoor.enroutetogether.firebase.Firebase;
 import com.example.areebamansoor.enroutetogether.gmail.Gmail;
 import com.example.areebamansoor.enroutetogether.gmail.SendEmailTask;
 import com.example.areebamansoor.enroutetogether.model.Register;
+import com.example.areebamansoor.enroutetogether.model.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -60,17 +62,29 @@ public class Gen_SignupForm extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (validateFields()) {
-                    if (binding.etPwd.getText().toString().equalsIgnoreCase(binding.etCpwd.getText().toString())) {
-                        createUser();
-                        return;
-                    }
-                    Toast.makeText(Gen_SignupForm.this, "Password didn't match", Toast.LENGTH_SHORT).show();
+                if (!validateFields()) {
+                    Toast.makeText(Gen_SignupForm.this, "Please fill required fields", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                Toast.makeText(Gen_SignupForm.this, "Please fill required fields", Toast.LENGTH_SHORT).show();
-
+                if (!binding.etPwd.getText().toString().equalsIgnoreCase(binding.etCpwd.getText().toString())) {
+                    Toast.makeText(Gen_SignupForm.this, "Password didn't match", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!isValidEmail(binding.etEmail.getText().toString())) {
+                    Toast.makeText(Gen_SignupForm.this, "Invalid email", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (binding.etPwd.getText().length() < 4) {
+                    Toast.makeText(Gen_SignupForm.this, "Password should be 4 characters long", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                createUser();
             }
         });
+    }
+
+    public static boolean isValidEmail(CharSequence target) {
+        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
     }
 
     private void createUser() {
@@ -90,6 +104,17 @@ public class Gen_SignupForm extends AppCompatActivity {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
 
+                    for (DataSnapshot user : dataSnapshot.getChildren()) {
+
+                        User tempUser = user.getValue(User.class);
+
+                        if (tempUser.getEmail().equalsIgnoreCase(email)) {
+                            progressDialog.dismiss();
+                            Toast.makeText(Gen_SignupForm.this, "Email already registered", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                    }
                     user_id = dataSnapshot.getChildrenCount();
                     user_id++;
 

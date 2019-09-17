@@ -29,6 +29,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.areebamansoor.enroutetogether.RequestTypes.PASSENGER_REQUEST;
 import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVERS;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -62,7 +63,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             // ActivePassengers passenger = new Gson().fromJson(body, ActivePassengers.class);
             showNotification(title, body);
 
-            savePassengerRequest(passengerId);
+            if (notificationType.equalsIgnoreCase(String.valueOf(PASSENGER_REQUEST)))
+                savePassengerRequest(passengerId);
 
         }
 

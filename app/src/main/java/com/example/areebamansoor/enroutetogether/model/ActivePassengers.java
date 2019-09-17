@@ -15,6 +15,10 @@ public class ActivePassengers implements Serializable {
     private String requestedSeats;
     private String timeStamp;
     private String passengerDetails;
+    private String requestedDriver;
+    private Boolean rideStart = false;
+    private Boolean rideEnd = false;
+    private Boolean rideArrive = false;
 
     public ActivePassengers() {
     }
@@ -23,8 +27,40 @@ public class ActivePassengers implements Serializable {
         return new Gson().fromJson(passengerDetails, User.class);
     }
 
+    public Boolean getRideStart() {
+        return rideStart;
+    }
+
+    public Boolean getRideArrive() {
+        return rideArrive;
+    }
+
+    public void setRideArrive(Boolean rideArrive) {
+        this.rideArrive = rideArrive;
+    }
+
+    public void setRideStart(Boolean rideStart) {
+        this.rideStart = rideStart;
+    }
+
+    public Boolean getRideEnd() {
+        return rideEnd;
+    }
+
+    public void setRideEnd(Boolean rideEnd) {
+        this.rideEnd = rideEnd;
+    }
+
     public void setPassengerDetails(User passengerDetails) {
         this.passengerDetails = new Gson().toJson(passengerDetails);
+    }
+
+    public String getRequestedDriver() {
+        return requestedDriver;
+    }
+
+    public void setRequestedDriver(String requestedDriver) {
+        this.requestedDriver = requestedDriver;
     }
 
     public String getFcmDeviceId() {

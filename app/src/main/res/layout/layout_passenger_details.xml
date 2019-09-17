@@ -131,28 +131,15 @@
 
 
     <Button
-        android:id="@+id/btn_send_req"
+        android:id="@+id/btn_action_ride"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/seatsContainer"
         android:layout_alignParentRight="true"
         android:layout_marginTop="30dp"
         android:background="@color/colorGray"
-        android:text="Send Request"
+        android:text="I'm Here"
         android:textColor="@color/colorWhite" />
-
-    <TextView
-        android:id="@+id/already_sent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/seatsContainer"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:text="Request sent!"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
-        android:textColor="@color/colorGreen"
-        android:textStyle="bold"
-        android:visibility="gone" />
 
 
 </RelativeLayout>

@@ -61,7 +61,7 @@
             android:backgroundTint="@color/colorWhite"
             android:ems="10"
             android:hint="Enter your email"
-            android:inputType="textPersonName"
+            android:inputType="textEmailAddress"
             android:textColor="@color/colorWhite"
             android:textColorHint="@color/colorWhite"
             android:textSize="17sp" />
@@ -75,8 +75,9 @@
             android:layout_marginTop="10dp"
             android:backgroundTint="@color/colorWhite"
             android:ems="10"
-            android:hint="Enter your password"
+            android:hint="Enter your password (min 6 characters)"
             android:inputType="textPassword"
+            android:maxLength="10"
             android:textColor="@color/colorWhite"
             android:textColorHint="@color/colorWhite"
             android:textSize="17sp" />
@@ -89,8 +90,9 @@
             android:layout_marginTop="10dp"
             android:backgroundTint="@color/colorWhite"
             android:ems="10"
-            android:hint="Confirm your password"
+            android:hint="Confirm your password (min 6 characters)"
             android:inputType="textPassword"
+            android:maxLength="10"
             android:textColor="@color/colorWhite"
             android:textColorHint="@color/colorWhite"
             android:textSize="17sp" />

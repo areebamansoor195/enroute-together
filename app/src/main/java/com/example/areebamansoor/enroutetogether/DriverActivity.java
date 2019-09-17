@@ -23,23 +23,19 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
 import com.example.areebamansoor.enroutetogether.adapters.PassengerRequestAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.ActivityDriverBinding;
 import com.example.areebamansoor.enroutetogether.firebase.Firebase;
-import com.example.areebamansoor.enroutetogether.fragments.FragmentOfferRides;
 import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
 import com.example.areebamansoor.enroutetogether.model.User;
@@ -120,6 +116,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
     private ValueEventListener valueEventListener;
     private User user;
     List<ActivePassengers> passengersList;
+    List<ActivePassengers> acceptedPassengersList;
     private Dialog dialog;
     private List<Marker> passengerMarkers = new ArrayList<>();
 
@@ -266,7 +263,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
             }
         };
 
-        Utils.sendFCM(activePassengers.getFcmDeviceId(), "Accept Request",
+        Utils.sendFCM(activePassengers.getFcmDeviceId(), RequestTypes.ACCEPT_REQUEST,
                 "Hello " + activePassengers.getPassengerDetails().getName(), user.getName() + " accepted your ride request", user.getUserId(), fcmCallback);
 
         saveAcceptedPassengers(activePassengers);
@@ -332,6 +329,9 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                     public void onComplete(@NonNull Task<Void> task) {
                         if (dialog != null)
                             dialog.dismiss();
+
+                        if (myOfferRide.getAcceptedPassengers() != null)
+                            drawAcceptedPassengers();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -508,6 +508,8 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
     @Override
     protected void onResume() {
         super.onResume();
+
+        acceptedPassengersList = new ArrayList<>();
         if (myOfferRide.getAcceptedPassengers() != null)
             drawAcceptedPassengers();
     }
@@ -515,6 +517,11 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
     private void drawAcceptedPassengers() {
 
         Log.e(TAG, new Gson().toJson(myOfferRide));
+
+        for (Marker marker : passengerMarkers) {
+            marker.remove();
+        }
+        passengerMarkers.clear();
 
         final String[] acceptedPassengers = myOfferRide.getAcceptedPassengers().split(",");
 
@@ -530,13 +537,8 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
 
-                    for(DataSnapshot dataSnapshot1:data.getChildren()){
+                    for (DataSnapshot dataSnapshot1 : data.getChildren()) {
                         activePassengers = dataSnapshot1.getValue(ActivePassengers.class);
-
-                        for (Marker marker : passengerMarkers) {
-                            marker.remove();
-                        }
-                        passengerMarkers.clear();
 
                         for (String accceptedPassenger : acceptedPassengers) {
                             if (activePassengers.getUserId().equalsIgnoreCase(accceptedPassenger)) {
@@ -563,6 +565,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
 
                                 adjustBounds(passengerMarkers);
 
+                                acceptedPassengersList.add(activePassengers);
                             }
 
                         }
@@ -614,7 +617,171 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+        if (marker.getTag() != null) {
+            ActivePassengers passengerDetails = acceptedPassengersList.get((int) marker.getTag());
+            if (passengerDetails != null) {
+                Log.e(TAG, passengerDetails.getPassengerDetails().getName());
+                openDialog(passengerDetails);
+            }
+        }
         return false;
+    }
+
+    private void openDialog(final ActivePassengers passenger) {
+
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_passenger_details);
+
+        final Button btn_action_ride = dialog.findViewById(R.id.btn_action_ride);
+        TextView name = dialog.findViewById(R.id.driverName);
+        TextView gender = dialog.findViewById(R.id.gender);
+        TextView source = dialog.findViewById(R.id.source);
+        TextView destination = dialog.findViewById(R.id.destination);
+        TextView availableSeats = dialog.findViewById(R.id.availableSeats);
+        final CircleImageView profileImage = dialog.findViewById(R.id.profile_image);
+        ImageView closeBtn = dialog.findViewById(R.id.close_btn);
+
+        name.setText(passenger.getPassengerDetails().getName());
+        gender.setText(passenger.getPassengerDetails().getGender());
+        source.setText(passenger.getPickup());
+        destination.setText(passenger.getDropoff());
+        availableSeats.setText(passenger.getRequestedSeats() + " Seat(s)");
+
+        if (passenger.getPassengerDetails().getImage_url() != null) {
+            Picasso.get()
+                    .load(passenger.getPassengerDetails().getImage_url())
+                    .placeholder(R.drawable.icon2)
+                    .into(profileImage);
+        }
+
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        if (passenger.getRideArrive()) {
+            btn_action_ride.setText("Start Ride");
+            btn_action_ride.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        }
+        if (passenger.getRideStart()) {
+            btn_action_ride.setText("End Ride");
+            btn_action_ride.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+
+        if (passenger.getRideEnd()) {
+            btn_action_ride.setText("Ride Ended!");
+            btn_action_ride.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            btn_action_ride.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        }
+        btn_action_ride.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                progressDialog.show();
+
+                if (btn_action_ride.getText().toString().equalsIgnoreCase("I'm Here")) {
+                    FcmCallback fcmCallback = new FcmCallback() {
+                        @Override
+                        public void onResponse(String response) {
+                            passenger.setRideArrive(true);
+                            updateActivePassenger(dialog, passenger);
+                        }
+
+                        @Override
+                        public void onFailure(String reponse) {
+                            progressDialog.dismiss();
+                            dialog.dismiss();
+                            Toast.makeText(DriverActivity.this, "Unable to arrive", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    Utils.sendFCM(passenger.getFcmDeviceId(), RequestTypes.RIDE_ARRIVE,
+                            "Hello " + passenger.getPassengerDetails().getName(), "Your driver " + user.getName() + " is just arrived!", user.getUserId(), fcmCallback);
+
+                } else if (btn_action_ride.getText().toString().equalsIgnoreCase("Start Ride")) {
+                    FcmCallback fcmCallback = new FcmCallback() {
+                        @Override
+                        public void onResponse(String response) {
+                            passenger.setRideStart(true);
+                            /*String[] dropOffLatLngStr = passenger.getDropoffLatLng().split(",");
+                            LatLng dropOffLatLng = new LatLng(Double.parseDouble(dropOffLatLngStr[0]), Double.parseDouble(dropOffLatLngStr[1]));
+                            passengerMarkers.get(acceptedPassengersList.indexOf(passenger)).setPosition(dropOffLatLng);*/
+                            updateActivePassenger(dialog, passenger);
+                        }
+
+                        @Override
+                        public void onFailure(String reponse) {
+                            progressDialog.dismiss();
+                            dialog.dismiss();
+                            Toast.makeText(DriverActivity.this, "Unable to start ride", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    Utils.sendFCM(passenger.getFcmDeviceId(), RequestTypes.RIDE_START,
+                            "Hello " + passenger.getPassengerDetails().getName(), "Your ride has been started!", user.getUserId(), fcmCallback);
+                } else if (btn_action_ride.getText().toString().equalsIgnoreCase("End Ride")) {
+                    FcmCallback fcmCallback = new FcmCallback() {
+                        @Override
+                        public void onResponse(String response) {
+                            passenger.setRideEnd(true);
+                            updateActivePassenger(dialog, passenger);
+                        }
+
+                        @Override
+                        public void onFailure(String reponse) {
+                            progressDialog.dismiss();
+                            dialog.dismiss();
+                            Toast.makeText(DriverActivity.this, "Unable to end ride", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    Utils.sendFCM(passenger.getFcmDeviceId(), RequestTypes.RIDE_END,
+                            "Hello " + passenger.getPassengerDetails().getName(), "Your ride has been ended. Thank you!", user.getUserId(), fcmCallback);
+                }
+            }
+        });
+
+
+        dialog.show();
+    }
+
+    private void updateActivePassenger(final Dialog dialog, final ActivePassengers passenger) {
+
+        final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(passenger.getUserId());
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                activePassengerRef.removeEventListener(valueEventListener);
+
+                Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+                List<ActivePassengers> myBookRides = new ArrayList<>();
+
+                myBookRides.add(passenger);
+
+                Firebase.getInstance().mDatabase.child(ACTIVE_PASSENGERS).child(passenger.getUserId()).
+                        setValue(myBookRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        progressDialog.dismiss();
+                        dialog.dismiss();
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                activePassengerRef.removeEventListener(valueEventListener);
+            }
+        };
+        activePassengerRef.addListenerForSingleValueEvent(valueEventListener);
+
     }
 
     @Override
@@ -626,6 +793,8 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(sourceLocation, 13));
+
+        mMap.setOnMarkerClickListener(this);
 
         View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
         ImageView pin_image = marker.findViewById(R.id.pin_img);
