@@ -78,6 +78,7 @@ public class FragmentOfferRides extends Fragment {
                         Intent intent = new Intent(getActivity(), DriverActivity.class);
                         intent.putExtra("Job", new Gson().toJson(activeDrivers));
                         startActivity(intent);
+                        getActivity().finish();
                     }
                 })
                 .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
@@ -154,6 +155,11 @@ public class FragmentOfferRides extends Fragment {
             }
         };
         activeDriverRef.addValueEventListener(valueEventListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
     }
 
     @Override

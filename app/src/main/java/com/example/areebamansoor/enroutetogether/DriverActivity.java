@@ -330,8 +330,11 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                         if (dialog != null)
                             dialog.dismiss();
 
-                        if (myOfferRide.getAcceptedPassengers() != null)
+                        if (myOfferRide.getAcceptedPassengers() != null) {
                             drawAcceptedPassengers();
+                            activePassengers.setRideAccepted(true);
+                            updateActivePassenger(null, activePassengers);
+                        }
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -499,6 +502,44 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         try {
             myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
             Log.e(TAG, myLatLng.latitude + "," + myLatLng.longitude);
+            myOfferRide.setCurrentLatlng(myLatLng.latitude + "," + myLatLng.longitude);
+
+            final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(user.getUserId());
+            valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    activeDriverRef.removeEventListener(valueEventListener);
+                    Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+
+                    List<ActiveDrivers> myOfferRides = new ArrayList<>();
+
+
+                    /* Remove requested Passengers from firebase  */
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        ActiveDrivers activeDriverTemp = data.getValue(ActiveDrivers.class);
+                        activeDriverTemp.setCurrentLatlng(myOfferRide.getCurrentLatlng());
+                        myOfferRides.add(activeDriverTemp);
+                    }
+
+                    activeDriverRef.setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+
+                        }
+                    });
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    activeDriverRef.removeEventListener(valueEventListener);
+                }
+            };
+            activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -763,7 +804,8 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         progressDialog.dismiss();
-                        dialog.dismiss();
+                        if (dialog != null)
+                            dialog.dismiss();
 
                     }
                 }).addOnFailureListener(new OnFailureListener() {

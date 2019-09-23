@@ -19,6 +19,15 @@ public class ActivePassengers implements Serializable {
     private Boolean rideStart = false;
     private Boolean rideEnd = false;
     private Boolean rideArrive = false;
+    private Boolean rideAccepted=false;
+
+    public Boolean getRideAccepted() {
+        return rideAccepted;
+    }
+
+    public void setRideAccepted(Boolean rideAccepted) {
+        this.rideAccepted = rideAccepted;
+    }
 
     public ActivePassengers() {
     }

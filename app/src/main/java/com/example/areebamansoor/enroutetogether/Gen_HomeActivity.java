@@ -49,6 +49,11 @@ public class Gen_HomeActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gen_home);
 
+        try {
+            Log.e(TAG, "Password:" + AESCrypt.decrypt("SE2CFUdUVCtgcw7bwkjM8A==\\n"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
 
         progressDialog = new ProgressDialog(this);

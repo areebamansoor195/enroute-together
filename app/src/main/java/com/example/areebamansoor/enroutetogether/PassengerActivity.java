@@ -2,6 +2,7 @@ package com.example.areebamansoor.enroutetogether;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,11 +19,19 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.areebamansoor.enroutetogether.databinding.ActivityDriverBinding;
+import com.example.areebamansoor.enroutetogether.databinding.ActivityPassengerBinding;
+import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
+import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
+import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.DataParser;
 import com.example.areebamansoor.enroutetogether.utils.MapAnimator;
+import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.example.areebamansoor.enroutetogether.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,11 +44,20 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -53,6 +71,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_DRIVERS;
+import static com.example.areebamansoor.enroutetogether.utils.Constants.ACTIVE_PASSENGERS;
+
 public class PassengerActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -63,13 +86,20 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
     private static final String TAG = "DriverActivity";
     GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
-    private ActivityDriverBinding binding;
+    private ActivityPassengerBinding binding;
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
     private ArrayList<Polyline> polylineArrayList;
     private LatLng sourceLocation, destinationLocation;
-
+    private User user;
     private LatLng myLatLng;
+    private ActivePassengers myBookRide;
+
+    private DatabaseReference activePassengerRef;
+    private DatabaseReference activeDriverRef;
+    private ValueEventListener valueEventListener;
+    private ValueEventListener valueEventListener2;
+    private Marker driverMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,10 +115,93 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
             alertForNoGps();
         }
 
+        binding.toolbarLayout.toolbar.setTitle("My Book Ride");
+
+        user = new Gson().fromJson(SharedPreferencHandler.getUser(), User.class);
+
+        myBookRide = new Gson().fromJson(getIntent().getStringExtra("Job"), ActivePassengers.class);
+        String[] sourceLatLngStr = myBookRide.getPickupLatLng().split(",");
+        String[] destLatLngStr = myBookRide.getDropoffLatLng().split(",");
+
+        sourceLocation = new LatLng(Double.parseDouble(sourceLatLngStr[0]), Double.parseDouble(sourceLatLngStr[1]));
+        destinationLocation = new LatLng(Double.parseDouble(destLatLngStr[0]), Double.parseDouble(destLatLngStr[1]));
+
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
+
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ActivePassengers activePassengers = null;
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    activePassengers = data.getValue(ActivePassengers.class);
+                }
+                myBookRide = activePassengers;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        activePassengerRef.addValueEventListener(valueEventListener);
+
+        activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(myBookRide.getRequestedDriver());
+
+        valueEventListener2 = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ActiveDrivers activeDrivers = null;
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    activeDrivers = data.getValue(ActiveDrivers.class);
+                }
+                if (myBookRide.getRideAccepted()) {
+                    drawAcceptedDriver(activeDrivers);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        activeDriverRef.addValueEventListener(valueEventListener2);
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    private void drawAcceptedDriver(ActiveDrivers activeDriver) {
+
+        String initialLatLng = activeDriver.getCurrentLatlng();
+        String[] latLngString = initialLatLng.split(",");
+        LatLng driverPosition = new LatLng(Double.parseDouble(latLngString[0]), Double.parseDouble(latLngString[1]));
+        View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+
+        if (activeDriver.getDriverDetails().getImage_url() != null) {
+            CircleImageView profile_img = marker.findViewById(R.id.profileImage);
+            Log.e(TAG, activeDriver.getDriverDetails().getImage_url());
+            Picasso.get()
+                    .load(activeDriver.getDriverDetails().getImage_url())
+                    .placeholder(R.drawable.icon2)
+                    .into(profile_img);
+        }
+
+        if (driverMarker == null)
+            driverMarker = mMap.addMarker(new MarkerOptions()
+                    .position(driverPosition)
+                    .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(PassengerActivity.this, marker))));
+        else
+            driverMarker.setPosition(driverPosition);
+
+        adjustBounds(driverMarker);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -139,7 +252,7 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         alert.show();
     }
 
-    private void adjustBounds(List<Marker> driverPosition) {
+    private void adjustBounds(Marker driverPosition) {
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
@@ -150,9 +263,7 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
             builder.include(destinationLocation);
 
         if (driverPosition != null) {
-            for (Marker marker : driverPosition) {
-                builder.include(marker.getPosition());
-            }
+            builder.include(driverPosition.getPosition());
         }
 
 
@@ -235,7 +346,10 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         try {
             myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
             Log.e(TAG, myLatLng.latitude + "," + myLatLng.longitude);
+            myBookRide.setCurrentLatlng(myLatLng.latitude + "," + myLatLng.longitude);
 
+            /*if (myBookRide.getRideAccepted())
+                drawAcceptedDriver();*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -277,12 +391,45 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        activePassengerRef.removeEventListener(valueEventListener);
+        activeDriverRef.removeEventListener(valueEventListener);
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.e(TAG, "onMapReady");
 
         mMap = googleMap;
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(sourceLocation, 13));
+
+        View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
+        ImageView pin_image = marker.findViewById(R.id.pin_img);
+        pin_image.setImageDrawable(getResources().getDrawable(R.drawable.source_pin));
+        TextView marker_text = marker.findViewById(R.id.marker_text);
+        marker_text.setText("Source");
+
+        mMap.addMarker(new MarkerOptions()
+                .position(sourceLocation)
+                .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(PassengerActivity.this, marker))));
+
+        View Destmarker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_text_layout, null);
+        ImageView pin_image_d = Destmarker.findViewById(R.id.pin_img);
+        pin_image_d.setImageDrawable(getResources().getDrawable(R.drawable.destination_pin));
+        TextView marker_text_d = Destmarker.findViewById(R.id.marker_text);
+        marker_text_d.setText("Dest");
+
+        mMap.addMarker(new MarkerOptions()
+                .position(destinationLocation)
+                .icon(BitmapDescriptorFactory.fromBitmap(Utils.createDrawableFromView(PassengerActivity.this, Destmarker))));
+
+        drawRoute(myBookRide.getPickupLatLng(), myBookRide.getDropoffLatLng());
+
+        adjustBounds();
 
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

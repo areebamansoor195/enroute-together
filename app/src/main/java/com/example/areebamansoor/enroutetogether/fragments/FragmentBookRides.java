@@ -2,6 +2,7 @@ package com.example.areebamansoor.enroutetogether.fragments;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,17 +15,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.areebamansoor.enroutetogether.PassengerActivity;
 import com.example.areebamansoor.enroutetogether.R;
 import com.example.areebamansoor.enroutetogether.adapters.BookRidesAdapter;
 import com.example.areebamansoor.enroutetogether.databinding.FragmentBookRidesBinding;
-import com.example.areebamansoor.enroutetogether.firebase.Firebase;
-import com.example.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.example.areebamansoor.enroutetogether.model.ActivePassengers;
 import com.example.areebamansoor.enroutetogether.model.User;
 import com.example.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -78,7 +75,9 @@ public class FragmentBookRides extends Fragment {
                 .setCancelable(false)
                 .setPositiveButton("Show", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int id) {
-
+                        Intent intent = new Intent(getActivity(), PassengerActivity.class);
+                        intent.putExtra("Job", new Gson().toJson(activePassengers));
+                        startActivity(intent);
                     }
                 })
                 .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
