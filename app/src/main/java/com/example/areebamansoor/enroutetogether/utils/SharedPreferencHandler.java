@@ -39,6 +39,24 @@ public class SharedPreferencHandler {
         editor.apply();
     }
 
+    public static String getBaseFare() {
+        return preferences.getString(Constants.BASE_FARE, "20");
+    }
+
+    public static void setBaseFare(String baseFare) {
+        editor.putString(Constants.BASE_FARE, baseFare);
+        editor.apply();
+    }
+
+    public static String getPerKmFare() {
+        return preferences.getString(Constants.PER_KM_FARE, "5");
+    }
+
+    public static void setPerKmFare(String perKmFare) {
+        editor.putString(Constants.PER_KM_FARE, perKmFare);
+        editor.apply();
+    }
+
     public static void setIsLogin(Boolean loginFlag) {
         editor.putBoolean(Constants.LOGIN, loginFlag);
         editor.apply();

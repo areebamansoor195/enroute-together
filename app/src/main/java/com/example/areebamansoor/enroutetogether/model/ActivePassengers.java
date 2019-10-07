@@ -14,12 +14,31 @@ public class ActivePassengers implements Serializable {
     private String fcmDeviceId;
     private String requestedSeats;
     private String timeStamp;
+    private String fare;
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
+    }
+
+    private String distance;
     private String passengerDetails;
     private String requestedDriver;
     private Boolean rideStart = false;
     private Boolean rideEnd = false;
     private Boolean rideArrive = false;
-    private Boolean rideAccepted=false;
+    private Boolean rideAccepted = false;
+
+    public String getFare() {
+        return fare;
+    }
+
+    public void setFare(String fare) {
+        this.fare = fare;
+    }
 
     public Boolean getRideAccepted() {
         return rideAccepted;

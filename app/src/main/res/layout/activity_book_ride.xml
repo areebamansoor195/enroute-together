@@ -63,6 +63,7 @@
                 android:layout_marginBottom="25dp"
                 android:src="@drawable/logo" />
 
+
             <Button
                 android:id="@+id/selectLocationBtn"
                 android:layout_width="match_parent"
@@ -74,6 +75,35 @@
                 android:background="@color/colorGray"
                 android:text="Set Pick-Up"
                 android:textColor="@color/colorWhite" />
+
+            <RelativeLayout
+                android:id="@+id/fareContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:visibility="gone"
+                android:background="@color/colorGray"
+                android:padding="15dp">
+
+                <TextView
+                    android:id="@+id/fare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fare : 198 Rs"
+                    android:textAlignment="center"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textColor="@color/colorWhite" />
+
+                <TextView
+                    android:id="@+id/seats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:text="Seats : 1"
+                    android:textAlignment="center"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textColor="@color/colorWhite" />
+            </RelativeLayout>
 
 
         </FrameLayout>

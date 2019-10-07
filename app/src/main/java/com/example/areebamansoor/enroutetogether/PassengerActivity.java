@@ -149,26 +149,27 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         };
         activePassengerRef.addValueEventListener(valueEventListener);
 
-        activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(myBookRide.getRequestedDriver());
+        if (myBookRide.getRequestedDriver() != null) {
+            activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(myBookRide.getRequestedDriver());
 
-        valueEventListener2 = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                ActiveDrivers activeDrivers = null;
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    activeDrivers = data.getValue(ActiveDrivers.class);
+            valueEventListener2 = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    ActiveDrivers activeDrivers = null;
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        activeDrivers = data.getValue(ActiveDrivers.class);
+                    }
+                    if (myBookRide.getRideAccepted()) {
+                        drawAcceptedDriver(activeDrivers);
+                    }
                 }
-                if (myBookRide.getRideAccepted()) {
-                    drawAcceptedDriver(activeDrivers);
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        };
-        activeDriverRef.addValueEventListener(valueEventListener2);
-
+            };
+            activeDriverRef.addValueEventListener(valueEventListener2);
+        }
 
     }
 
@@ -394,7 +395,8 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
     protected void onDestroy() {
         super.onDestroy();
         activePassengerRef.removeEventListener(valueEventListener);
-        activeDriverRef.removeEventListener(valueEventListener);
+        if (activeDriverRef != null)
+            activeDriverRef.removeEventListener(valueEventListener);
     }
 
     @Override

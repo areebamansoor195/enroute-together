@@ -24,4 +24,9 @@ public class Constants {
     public static final String ACTIVE_DRIVERS = "ActiveDrivers";
     public static final String ACTIVE_PASSENGERS = "ActivePassengers";
 
+
+    //Fare
+    public static final String BASE_FARE="base_fare";
+    public static final String PER_KM_FARE="fare";
+
 }

@@ -134,6 +134,9 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
     private ValueEventListener activeDriversListener;
 
+    private String distance = "";
+    private String duration = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -339,6 +342,18 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
             activePassengers.setUserId(user.getUserId());
             activePassengers.setPassengerDetails(passengerDetail);
+            activePassengers.setDistance(distance);
+
+            double distance = Double.parseDouble(activePassengers.getDistance().split(" ")[0]);    //6.2 KM
+            int noOfSeats = Integer.parseInt(activePassengers.getRequestedSeats());  //2 seats
+            int baseFare = Integer.parseInt(SharedPreferencHandler.getBaseFare());   //20 Rs
+            int perKmFare = Integer.parseInt(SharedPreferencHandler.getPerKmFare()); //10 Rs
+            double travelingFare = distance * perKmFare;                             // 6.2 * 10 = 62 RS
+            double totalFare = (baseFare + travelingFare) * noOfSeats;               // (20 + 62) * 2 = 164 Rs
+            Log.e(TAG, "Total Fare = " + totalFare);
+
+            activePassengers.setFare((int) totalFare + "");
+
 
             final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
             valueEventListener = new ValueEventListener() {
@@ -368,6 +383,9 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                             binding.clearBtn.setVisibility(GONE);
                             binding.selectLocationBtn.setVisibility(GONE);
                             SharedPreferencHandler.setHasPendingBookRide(true);
+                            binding.fareContainer.setVisibility(View.VISIBLE);
+                            binding.fare.setText("Fare : " + activePassengers.getFare() + " Rs");
+                            binding.seats.setText("Seat(s) : " + activePassengers.getRequestedSeats());
                             getActiveDrivers(true);
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -388,6 +406,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
         }
     }
+
 
     private void getActiveDrivers(boolean isDialogShow) {
         try {
@@ -686,7 +705,6 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
             mMap.setMyLocationEnabled(true);
         }
 
-
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -924,13 +942,17 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
         return data;
     }
 
-    private void startAnim(ArrayList<LatLng> route) {
+    private void startAnim(ArrayList<LatLng> route, String distance, String duration) {
+        this.distance = distance;
+        this.duration = duration;
+        Log.e(TAG, "distance = " + this.distance + ",duration = " + this.duration);
         if (mMap != null) {
             polylineArrayList = MapAnimator.getInstance().animateRoute(mMap, route);
         } else {
             Toast.makeText(getApplicationContext(), "Map not ready", Toast.LENGTH_LONG).show();
         }
     }
+
 
     @Override
     public boolean onMarkerClick(Marker marker) {
@@ -1096,6 +1118,9 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
         // Parsing the data in non-ui thread
+        String distance = "";
+        String duration = "";
+
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
 
@@ -1108,6 +1133,9 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
 
                 // Starts parsing data
                 routes = parser.parse(jObject);
+                distance = parser.getDistance();
+                duration = parser.getDuration();
+
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1122,6 +1150,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
             PolylineOptions lineOptions = null;
             String distance = "";
             String duration = "";
+
             try {
                 // Traversing through all the routes
                 for (int i = 0; i < result.size(); i++) {
@@ -1138,7 +1167,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                             distance = (String) point.get("distance");
                             continue;
                         } else if (j == 1) { // Get duration from the list
-                            distance = (String) point.get("duration");
+                            duration = (String) point.get("duration");
                             continue;
                         }
 
@@ -1157,10 +1186,10 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-
             // Drawing polyline in the Google Map for the i-th route
             if (lineOptions != null) {
-                startAnim(points);
+                startAnim(points, this.distance, this.duration);
+
             } else {
             }
         }

@@ -29,6 +29,9 @@ public class DataParser {
     public String getDistance() {
         return distance;
     }
+    public String getDuration(){
+        return duration;
+    }
 
     /**
      * Receives a JSONObject and returns a list of lists containing latitude and longitude
