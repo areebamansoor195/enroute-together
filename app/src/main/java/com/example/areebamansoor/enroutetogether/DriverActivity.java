@@ -28,8 +28,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -582,7 +584,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                         activePassengers = dataSnapshot1.getValue(ActivePassengers.class);
 
                         for (String accceptedPassenger : acceptedPassengers) {
-                            if (activePassengers.getUserId().equalsIgnoreCase(accceptedPassenger)) {
+                            if (activePassengers.getUserId().equalsIgnoreCase(accceptedPassenger) && !activePassengers.getCashCollected()) {
 
                                 String initialLatLng = activePassengers.getPickupLatLng();
                                 String[] latLngString = initialLatLng.split(",");
@@ -662,19 +664,20 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
             ActivePassengers passengerDetails = acceptedPassengersList.get((int) marker.getTag());
             if (passengerDetails != null) {
                 Log.e(TAG, passengerDetails.getPassengerDetails().getName());
-                openDialog(passengerDetails);
+                openDialog(passengerDetails, marker);
             }
         }
         return false;
     }
 
-    private void openDialog(final ActivePassengers passenger) {
+    private void openDialog(final ActivePassengers passenger, final Marker marker) {
 
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.layout_passenger_details);
 
         final Button btn_action_ride = dialog.findViewById(R.id.btn_action_ride);
+        final Button btn_collect_fare = dialog.findViewById(R.id.btn_collect_fare);
         TextView name = dialog.findViewById(R.id.driverName);
         TextView gender = dialog.findViewById(R.id.gender);
         TextView source = dialog.findViewById(R.id.source);
@@ -682,6 +685,13 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         TextView availableSeats = dialog.findViewById(R.id.availableSeats);
         final CircleImageView profileImage = dialog.findViewById(R.id.profile_image);
         ImageView closeBtn = dialog.findViewById(R.id.close_btn);
+
+        final RelativeLayout ride_controll = dialog.findViewById(R.id.ride_controll);
+        final RelativeLayout fare_controll = dialog.findViewById(R.id.fare_controll);
+
+        TextView totalFare = dialog.findViewById(R.id.totalFare);
+        final EditText passenger_paid = dialog.findViewById(R.id.et_fare);
+
 
         name.setText(passenger.getPassengerDetails().getName());
         gender.setText(passenger.getPassengerDetails().getGender());
@@ -713,16 +723,52 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
         }
 
         if (passenger.getRideEnd()) {
-            btn_action_ride.setText("Ride Ended!");
-            btn_action_ride.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-            btn_action_ride.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+            ride_controll.setVisibility(GONE);
+            fare_controll.setVisibility(View.VISIBLE);
+            totalFare.setText("Total Fare : " + passenger.getFare().trim() + " Rs");
         }
+
+        if (passenger.getCashCollected()) {
+            fare_controll.setVisibility(GONE);
+            ride_controll.setVisibility(View.VISIBLE);
+            btn_action_ride.setVisibility(GONE);
+        }
+
+        btn_collect_fare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (passenger_paid.getText().length() > 0) {
+                    progressDialog.show();
+                    FcmCallback fcmCallback = new FcmCallback() {
+                        @Override
+                        public void onResponse(String response) {
+                            passenger.setCashCollected(true);
+                            updateActivePassenger(dialog, passenger);
+                            marker.remove();
+                        }
+
+                        @Override
+                        public void onFailure(String reponse) {
+                            progressDialog.dismiss();
+                            dialog.dismiss();
+                            Toast.makeText(DriverActivity.this, "Unable to end ride", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    Utils.sendFCM(passenger.getFcmDeviceId(), RequestTypes.RIDE_END,
+                            "Hello " + passenger.getPassengerDetails().getName(), "Payment received successfully. Thank you!", user.getUserId(), fcmCallback);
+                } else {
+                    Toast.makeText(DriverActivity.this, "Please enter amount", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         btn_action_ride.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                progressDialog.show();
+
 
                 if (btn_action_ride.getText().toString().equalsIgnoreCase("I'm Here")) {
+                    progressDialog.show();
                     FcmCallback fcmCallback = new FcmCallback() {
                         @Override
                         public void onResponse(String response) {
@@ -741,6 +787,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                             "Hello " + passenger.getPassengerDetails().getName(), "Your driver " + user.getName() + " is just arrived!", user.getUserId(), fcmCallback);
 
                 } else if (btn_action_ride.getText().toString().equalsIgnoreCase("Start Ride")) {
+                    progressDialog.show();
                     FcmCallback fcmCallback = new FcmCallback() {
                         @Override
                         public void onResponse(String response) {
@@ -761,11 +808,14 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                     Utils.sendFCM(passenger.getFcmDeviceId(), RequestTypes.RIDE_START,
                             "Hello " + passenger.getPassengerDetails().getName(), "Your ride has been started!", user.getUserId(), fcmCallback);
                 } else if (btn_action_ride.getText().toString().equalsIgnoreCase("End Ride")) {
+                    progressDialog.show();
                     FcmCallback fcmCallback = new FcmCallback() {
                         @Override
                         public void onResponse(String response) {
                             passenger.setRideEnd(true);
                             updateActivePassenger(dialog, passenger);
+                            ride_controll.setVisibility(View.GONE);
+                            fare_controll.setVisibility(View.VISIBLE);
                         }
 
                         @Override
@@ -776,13 +826,14 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                         }
                     };
                     Utils.sendFCM(passenger.getFcmDeviceId(), RequestTypes.RIDE_END,
-                            "Hello " + passenger.getPassengerDetails().getName(), "Your ride has been ended. Thank you!", user.getUserId(), fcmCallback);
+                            "Hello " + passenger.getPassengerDetails().getName(), "Your ride has been ended. Your Fare is " + passenger.getFare() + " Rs.", user.getUserId(), fcmCallback);
                 }
             }
         });
 
 
         dialog.show();
+
     }
 
     private void updateActivePassenger(final Dialog dialog, final ActivePassengers passenger) {

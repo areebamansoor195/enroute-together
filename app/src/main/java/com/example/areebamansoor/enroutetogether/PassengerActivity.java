@@ -141,6 +141,9 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
                     activePassengers = data.getValue(ActivePassengers.class);
                 }
                 myBookRide = activePassengers;
+                if (myBookRide.getCashCollected()) {
+                    finish();
+                }
             }
 
             @Override

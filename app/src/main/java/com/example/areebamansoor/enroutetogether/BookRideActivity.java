@@ -352,7 +352,7 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
             double totalFare = (baseFare + travelingFare) * noOfSeats;               // (20 + 62) * 2 = 164 Rs
             Log.e(TAG, "Total Fare = " + totalFare);
 
-            activePassengers.setFare((int) totalFare + "");
+            activePassengers.setFare((int) totalFare + "\n");
 
 
             final DatabaseReference activePassengerRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(user.getUserId());
@@ -384,7 +384,8 @@ public class BookRideActivity extends FragmentActivity implements OnMapReadyCall
                             binding.selectLocationBtn.setVisibility(GONE);
                             SharedPreferencHandler.setHasPendingBookRide(true);
                             binding.fareContainer.setVisibility(View.VISIBLE);
-                            binding.fare.setText("Fare : " + activePassengers.getFare() + " Rs");
+                            binding.fare.setText("Fare : " + activePassengers.getFare().trim() + " Rs");
+                            binding.distance.setText(activePassengers.getDistance());
                             binding.seats.setText("Seat(s) : " + activePassengers.getRequestedSeats());
                             getActiveDrivers(true);
                         }

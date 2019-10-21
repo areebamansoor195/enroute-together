@@ -190,7 +190,6 @@ public class FragmentBookRides extends Fragment {
 
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
                     ActivePassengers activePassengers = data.getValue(ActivePassengers.class);
-
                     activePassengersList.add(activePassengers);
                 }
 

@@ -41,105 +41,155 @@
         android:textAlignment="center" />
 
     <RelativeLayout
-        android:id="@+id/addressContainer"
+        android:id="@+id/fare_controll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/gender"
-        android:layout_marginTop="10dp"
-        android:gravity="center">
+        android:visibility="gone"
+        android:layout_marginTop="10dp">
 
-        <LinearLayout
-            android:id="@+id/pins_image"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/totalFare"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginTop="5dp"
+            android:text="Total Fare = 150 Rs"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/colorGray" />
 
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/source_pin" />
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="20dp"
-                android:layout_marginTop="3dp"
-                android:layout_marginBottom="3dp"
-                android:src="@drawable/vertical_dots" />
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/destination_pin" />
+        <EditText
+            android:id="@+id/et_fare"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/totalFare"
+            android:layout_marginTop="30dp"
+            android:backgroundTint="@color/colorPrimary"
+            android:ems="10"
+            android:hint="Passenger Paid? (Rs)"
+            android:inputType="number"
+            android:textSize="17sp" />
 
 
-        </LinearLayout>
+        <Button
+            android:id="@+id/btn_collect_fare"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/et_fare"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="30dp"
+            android:background="@color/colorPrimary"
+            android:text="Collect Fare"
+            android:textColor="@color/colorWhite" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/ride_controll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/gender"
+        android:layout_marginTop="10dp">
 
         <RelativeLayout
+            android:id="@+id/addressContainer"
             android:layout_width="match_parent"
-            android:layout_height="86dp"
-            android:layout_toRightOf="@+id/pins_image">
+            android:layout_height="wrap_content"
+            android:gravity="center">
 
-            <TextView
-                android:id="@+id/source"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/pins_image"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:maxLines="1"
-                android:textColor="@color/colorGray"
-                android:textSize="15dp" />
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/source_pin" />
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"
+                    android:src="@drawable/vertical_dots" />
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/destination_pin" />
 
 
-            <TextView
-                android:id="@+id/destination"
+            </LinearLayout>
+
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/source"
-                android:layout_marginTop="35dp"
-                android:maxLines="1"
-                android:textColor="@color/colorGray"
-                android:textSize="15dp" />
+                android:layout_height="86dp"
+                android:layout_toRightOf="@+id/pins_image">
+
+                <TextView
+                    android:id="@+id/source"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:maxLines="1"
+                    android:textColor="@color/colorGray"
+                    android:textSize="15dp" />
+
+
+                <TextView
+                    android:id="@+id/destination"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/source"
+                    android:layout_marginTop="35dp"
+                    android:maxLines="1"
+                    android:textColor="@color/colorGray"
+                    android:textSize="15dp" />
+
+            </RelativeLayout>
+
 
         </RelativeLayout>
 
 
-    </RelativeLayout>
-
-
-    <RelativeLayout
-        android:id="@+id/seatsContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/addressContainer"
-        android:layout_marginTop="10dp">
-
-        <ImageView
-            android:id="@+id/seat_icon"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginLeft="10dp"
-            android:src="@drawable/seat" />
-
-        <TextView
-            android:id="@+id/availableSeats"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:id="@+id/seatsContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:layout_toRightOf="@id/seat_icon"
-            android:text="2" />
+            android:layout_below="@+id/addressContainer"
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:id="@+id/seat_icon"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/seat" />
+
+            <TextView
+                android:id="@+id/availableSeats"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/seat_icon"
+                android:text="2" />
+        </RelativeLayout>
+
+
+        <Button
+            android:id="@+id/btn_action_ride"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/seatsContainer"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="30dp"
+            android:background="@color/colorGray"
+            android:text="I'm Here"
+            android:textColor="@color/colorWhite" />
     </RelativeLayout>
-
-
-    <Button
-        android:id="@+id/btn_action_ride"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/seatsContainer"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="30dp"
-        android:background="@color/colorGray"
-        android:text="I'm Here"
-        android:textColor="@color/colorWhite" />
 
 
 </RelativeLayout>

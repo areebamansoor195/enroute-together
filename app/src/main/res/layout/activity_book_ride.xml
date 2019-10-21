@@ -74,15 +74,16 @@
                 android:layout_marginBottom="10dp"
                 android:background="@color/colorGray"
                 android:text="Set Pick-Up"
-                android:textColor="@color/colorWhite" />
+                android:textColor="@color/colorWhite"
+                />
 
             <RelativeLayout
                 android:id="@+id/fareContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:visibility="gone"
                 android:background="@color/colorGray"
+                android:visibility="gone"
                 android:padding="15dp">
 
                 <TextView
@@ -91,17 +92,28 @@
                     android:layout_height="wrap_content"
                     android:text="Fare : 198 Rs"
                     android:textAlignment="center"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/colorWhite" />
+
+                <TextView
+                    android:id="@+id/distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:text="Distance : 1KM"
+                    android:textAlignment="center"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="@color/colorWhite" />
 
                 <TextView
                     android:id="@+id/seats"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
+                    android:layout_below="@+id/distance"
+                    android:layout_marginTop="5dp"
                     android:text="Seats : 1"
                     android:textAlignment="center"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="@color/colorWhite" />
             </RelativeLayout>
 

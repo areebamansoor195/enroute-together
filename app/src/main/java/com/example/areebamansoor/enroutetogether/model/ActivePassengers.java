@@ -31,6 +31,15 @@ public class ActivePassengers implements Serializable {
     private Boolean rideEnd = false;
     private Boolean rideArrive = false;
     private Boolean rideAccepted = false;
+    private Boolean cashCollected = false;
+
+    public Boolean getCashCollected() {
+        return cashCollected;
+    }
+
+    public void setCashCollected(Boolean cashCollected) {
+        this.cashCollected = cashCollected;
+    }
 
     public String getFare() {
         return fare;

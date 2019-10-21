@@ -40,7 +40,7 @@ public class SharedPreferencHandler {
     }
 
     public static String getBaseFare() {
-        return preferences.getString(Constants.BASE_FARE, "20");
+        return preferences.getString(Constants.BASE_FARE, "5");
     }
 
     public static void setBaseFare(String baseFare) {
@@ -49,7 +49,7 @@ public class SharedPreferencHandler {
     }
 
     public static String getPerKmFare() {
-        return preferences.getString(Constants.PER_KM_FARE, "5");
+        return preferences.getString(Constants.PER_KM_FARE, "3");
     }
 
     public static void setPerKmFare(String perKmFare) {
