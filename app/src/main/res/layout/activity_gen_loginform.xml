@@ -54,15 +54,15 @@
             android:textColorHint="@color/colorWhite"
             android:textSize="17sp" />
 
-       <!-- <CheckBox
-            android:id="@+id/remember_pwd"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/et_pwd"
-            android:layout_marginTop="10dp"
-            android:buttonTint="@color/colorWhite"
-            android:text="Remember password"
-            android:textColor="@color/colorWhite" />-->
+        <!-- <CheckBox
+             android:id="@+id/remember_pwd"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_below="@+id/et_pwd"
+             android:layout_marginTop="10dp"
+             android:buttonTint="@color/colorWhite"
+             android:text="Remember password"
+             android:textColor="@color/colorWhite" />-->
 
 
         <TextView
@@ -73,19 +73,20 @@
             android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:text="Forgot your password?"
-            android:textColor="@color/colorWhite" />
+            android:textColor="@color/colorWhite"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/login_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/forget_pwd"
+            android:layout_below="@+id/et_pwd"
             android:layout_centerHorizontal="true"
             android:layout_marginLeft="20dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="30dp"
             android:layout_marginRight="20dp"
-            android:text="Login"
             android:background="@color/colorGray"
+            android:text="Login"
             android:textColor="@color/colorWhite"
             android:textSize="15dp" />
 

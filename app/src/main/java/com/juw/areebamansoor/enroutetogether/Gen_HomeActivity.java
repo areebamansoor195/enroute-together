@@ -17,9 +17,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.juw.areebamansoor.enroutetogether.model.User;
-import com.juw.areebamansoor.enroutetogether.model.Vehicle;
-import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,6 +24,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
+import com.juw.areebamansoor.enroutetogether.model.User;
+import com.juw.areebamansoor.enroutetogether.model.Vehicle;
+import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -73,7 +73,7 @@ public class Gen_HomeActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                if (!SharedPreferencHandler.getPendingOfferRide()) {
+                if (!SharedPreferencHandler.getPendingBookRide()) {
                     if (SharedPreferencHandler.getVehicle().equalsIgnoreCase("")) {
 
                         if (user.getVehicleId() == null) {
@@ -119,7 +119,7 @@ public class Gen_HomeActivity extends AppCompatActivity
 
                     }
                 } else {
-                    Toast.makeText(Gen_HomeActivity.this, "Complete your previous ride first", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Gen_HomeActivity.this, "Complete your booked ride first", Toast.LENGTH_SHORT).show();
                 }
 
 
@@ -129,11 +129,11 @@ public class Gen_HomeActivity extends AppCompatActivity
         btn_book.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!SharedPreferencHandler.getPendingBookRide()) {
+                if (!SharedPreferencHandler.getPendingOfferRide()) {
                     Intent intent = new Intent(Gen_HomeActivity.this, BookRideActivity.class);
                     startActivity(intent);
                 } else {
-                    Toast.makeText(Gen_HomeActivity.this, "Complete your previous ride first", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Gen_HomeActivity.this, "Complete your offer ride first", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -213,7 +213,7 @@ public class Gen_HomeActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        //getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 

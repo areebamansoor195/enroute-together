@@ -15,19 +15,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.juw.areebamansoor.enroutetogether.PassengerActivity;
-import com.juw.areebamansoor.enroutetogether.R;
-import com.juw.areebamansoor.enroutetogether.adapters.BookRidesAdapter;
-import com.juw.areebamansoor.enroutetogether.databinding.FragmentBookRidesBinding;
-import com.juw.areebamansoor.enroutetogether.model.ActivePassengers;
-import com.juw.areebamansoor.enroutetogether.model.User;
-import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+import com.juw.areebamansoor.enroutetogether.PassengerActivity;
+import com.juw.areebamansoor.enroutetogether.R;
+import com.juw.areebamansoor.enroutetogether.adapters.BookRidesAdapter;
+import com.juw.areebamansoor.enroutetogether.databinding.FragmentBookRidesBinding;
+import com.juw.areebamansoor.enroutetogether.model.ActiveDrivers;
+import com.juw.areebamansoor.enroutetogether.model.ActivePassengers;
+import com.juw.areebamansoor.enroutetogether.model.User;
+import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,95 +74,107 @@ public class FragmentBookRides extends Fragment {
     }
 
     public void onClickItem(final ActivePassengers activePassengers) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setMessage("Do you want to?")
-                .setCancelable(false)
-                .setPositiveButton("Show", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, final int id) {
-                        Intent intent = new Intent(getActivity(), PassengerActivity.class);
-                        intent.putExtra("Job", new Gson().toJson(activePassengers));
-                        startActivity(intent);
-                    }
-                })
-                .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
 
-                        /*if (activePassengers.getRequestedDriver() != null)
-                            deleteRideFromDriver(activePassengers);
-*/
-                        final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(activePassengers.getUserId());
-                        valueEventListener = new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                currentRideRef.removeEventListener(valueEventListener);
-                                for (DataSnapshot data : dataSnapshot.getChildren()) {
+        if (activePassengers.getRideAccepted()) {
+            Intent intent = new Intent(getActivity(), PassengerActivity.class);
+            intent.putExtra("Job", new Gson().toJson(activePassengers));
+            startActivity(intent);
+        } else {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setMessage("Do you want to?")
+                    .setPositiveButton("Show", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, final int id) {
 
-                                    ActivePassengers mCurrentRide = data.getValue(ActivePassengers.class);
-                                    if (mCurrentRide != null) {
-                                        if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activePassengers.getTimeStamp()))
-                                            currentRideRef.child(data.getKey()).removeValue();
+                            Intent intent = new Intent(getActivity(), PassengerActivity.class);
+                            intent.putExtra("Job", new Gson().toJson(activePassengers));
+                            startActivity(intent);
+                        }
+                    })
+                    .setNegativeButton("Cancel Ride", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+
+                            if (activePassengers.getRequestedDriver() != null)
+                                deleteRideFromDriver(activePassengers);
+
+                            final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_PASSENGERS).child(activePassengers.getUserId());
+                            valueEventListener = new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    currentRideRef.removeEventListener(valueEventListener);
+                                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+
+                                        ActivePassengers mCurrentRide = data.getValue(ActivePassengers.class);
+                                        if (mCurrentRide != null) {
+                                            if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activePassengers.getTimeStamp()))
+                                                currentRideRef.child(data.getKey()).removeValue();
+                                        }
                                     }
+
+                                    SharedPreferencHandler.setHasPendingBookRide(false);
+                                    activePassengersList.remove(activePassengers);
+                                    adapter.notifyDataSetChanged();
                                 }
 
-                                SharedPreferencHandler.setHasPendingBookRide(false);
-                                activePassengersList.remove(activePassengers);
-                                adapter.notifyDataSetChanged();
-                            }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    currentRideRef.removeEventListener(valueEventListener);
+                                }
+                            };
+                            currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
+                            dialog.dismiss();
+                            getMyBookRides();
+                        }
+                    });
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                currentRideRef.removeEventListener(valueEventListener);
-                            }
-                        };
-                        currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
-                        dialog.dismiss();
-                        getMyBookRides();
-                    }
-                });
+            final AlertDialog alert = builder.create();
+            alert.show();
+        }
 
-        final AlertDialog alert = builder.create();
-        alert.show();
     }
 
     private void deleteRideFromDriver(final ActivePassengers activePassengers) {
 
-       /* final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(activePassengers.getRequestedDriver());
+        final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(activePassengers.getRequestedDriver());
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 activeDriverRef.removeEventListener(valueEventListener);
 
-                List<ActiveDrivers> driverOfferRides = new ArrayList<>();
+                List<ActiveDrivers> myOfferRides = new ArrayList<>();
 
-                for (DataSnapshot offerRides : dataSnapshot.getChildren()) {
-                    ActiveDrivers ride = offerRides.getValue(ActiveDrivers.class);
-                    driverOfferRides.add(ride);
-                }
 
-                String[] passengerRequests = driverOfferRides.get(0).getPassengerRequests().split(",");
+                /* Remove requested Passengers from firebase  */
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    ActiveDrivers activeDriverTemp = data.getValue(ActiveDrivers.class);
+                    String[] requested = activeDriverTemp.getPassengerRequests().split(",");
 
-                if (passengerRequests.length == 1) {
-                    driverOfferRides.get(0).setPassengerRequests(null);
-                } else {
-                    driverOfferRides.get(0).setPassengerRequests("");
-                    for (int i = 0; i < passengerRequests.length; i++) {
-                        if (!passengerRequests[i].equalsIgnoreCase(user.getUserId())) {
-                            if (i == 0) {
-                                driverOfferRides.get(0).setPassengerRequests(passengerRequests[i]);
-                            } else {
-                                driverOfferRides.get(0).setPassengerRequests("," + passengerRequests[i]);
+                    if (requested.length == 1) {
+                        activeDriverTemp.setPassengerRequests(null);
+                    } else {
+                        StringBuilder newRequestedList = new StringBuilder();
+
+                        for (int i = 0; i < requested.length; i++) {
+                            if (!requested[i].equalsIgnoreCase(activePassengers.getUserId())) {
+                                newRequestedList.append(requested[i] + ",");
                             }
                         }
+
+                        String newList = newRequestedList.toString();
+
+                        newList = newList.substring(0, newList.length() - 1);
+                        activeDriverTemp.setPassengerRequests(newList);
                     }
+
+                    myOfferRides.add(activeDriverTemp);
                 }
 
-                Firebase.getInstance().mDatabase.child(ACTIVE_DRIVERS).child(activePassengers.getRequestedDriver()).
-                        setValue(driverOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                activeDriverRef.setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
+
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -173,7 +189,7 @@ public class FragmentBookRides extends Fragment {
                 activeDriverRef.removeEventListener(valueEventListener);
             }
         };
-        activeDriverRef.addListenerForSingleValueEvent(valueEventListener);*/
+        activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
     }
 
     public void getMyBookRides() {

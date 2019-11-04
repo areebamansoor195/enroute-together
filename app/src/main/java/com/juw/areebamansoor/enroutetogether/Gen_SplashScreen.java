@@ -21,8 +21,7 @@ public class Gen_SplashScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_gen_splashscreen);
 
-
-
+        binding.appVersion.setText("v" + getAppVersion());
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {

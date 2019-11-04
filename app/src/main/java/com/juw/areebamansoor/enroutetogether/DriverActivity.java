@@ -35,17 +35,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.juw.areebamansoor.enroutetogether.adapters.PassengerRequestAdapter;
-import com.juw.areebamansoor.enroutetogether.databinding.ActivityDriverBinding;
-import com.juw.areebamansoor.enroutetogether.firebase.Firebase;
-import com.juw.areebamansoor.enroutetogether.model.ActiveDrivers;
-import com.juw.areebamansoor.enroutetogether.model.ActivePassengers;
-import com.juw.areebamansoor.enroutetogether.model.User;
-import com.juw.areebamansoor.enroutetogether.utils.DataParser;
-import com.juw.areebamansoor.enroutetogether.utils.FcmCallback;
-import com.juw.areebamansoor.enroutetogether.utils.MapAnimator;
-import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
-import com.juw.areebamansoor.enroutetogether.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -73,6 +62,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+import com.juw.areebamansoor.enroutetogether.adapters.PassengerRequestAdapter;
+import com.juw.areebamansoor.enroutetogether.databinding.ActivityDriverBinding;
+import com.juw.areebamansoor.enroutetogether.firebase.Firebase;
+import com.juw.areebamansoor.enroutetogether.model.ActiveDrivers;
+import com.juw.areebamansoor.enroutetogether.model.ActivePassengers;
+import com.juw.areebamansoor.enroutetogether.model.User;
+import com.juw.areebamansoor.enroutetogether.utils.DataParser;
+import com.juw.areebamansoor.enroutetogether.utils.FcmCallback;
+import com.juw.areebamansoor.enroutetogether.utils.MapAnimator;
+import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
+import com.juw.areebamansoor.enroutetogether.utils.Utils;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
@@ -744,7 +744,7 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
                         public void onResponse(String response) {
                             passenger.setCashCollected(true);
                             updateActivePassenger(dialog, passenger);
-                            marker.remove();
+                            removePassengerFromAcceptedList(passenger, marker);
                         }
 
                         @Override
@@ -834,6 +834,81 @@ public class DriverActivity extends FragmentActivity implements OnMapReadyCallba
 
         dialog.show();
 
+    }
+
+    private void removePassengerFromAcceptedList(final ActivePassengers activePassengers, final Marker marker) {
+
+        progressDialog.show();
+
+
+        final DatabaseReference activeDriverRef = FirebaseDatabase.getInstance().
+                getReference(ACTIVE_DRIVERS).child(user.getUserId());
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                activeDriverRef.removeEventListener(valueEventListener);
+
+                Log.e(TAG, dataSnapshot.getChildrenCount() + "");
+
+                List<ActiveDrivers> myOfferRides = new ArrayList<>();
+
+
+                /* Remove requested Passengers from firebase  */
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    ActiveDrivers activeDriverTemp = data.getValue(ActiveDrivers.class);
+                    String[] accepted = activeDriverTemp.getAcceptedPassengers().split(",");
+
+                    if (accepted.length == 1) {
+                        activeDriverTemp.setAcceptedPassengers(null);
+                    } else {
+                        StringBuilder newRequestedList = new StringBuilder();
+
+                        for (int i = 0; i < accepted.length; i++) {
+                            if (!accepted[i].equalsIgnoreCase(activePassengers.getUserId())) {
+                                newRequestedList.append(accepted[i] + ",");
+                            }
+                        }
+
+                        String newList = newRequestedList.toString();
+
+                        newList = newList.substring(0, newList.length() - 1);
+                        activeDriverTemp.setAcceptedPassengers(newList);
+                    }
+
+                    int availableSeats = Integer.parseInt(activeDriverTemp.getAvailableSeats()) + Integer.parseInt(activePassengers.getRequestedSeats());
+
+                    activeDriverTemp.setAvailableSeats(String.valueOf(availableSeats));
+
+                    myOfferRide = activeDriverTemp;
+                    myOfferRides.add(activeDriverTemp);
+                }
+
+                activeDriverRef.setValue(myOfferRides).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (progressDialog != null)
+                            progressDialog.dismiss();
+
+                        if (myOfferRide.getAcceptedPassengers() != null) {
+                            marker.remove();
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        if (progressDialog != null)
+                            progressDialog.dismiss();
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                activeDriverRef.removeEventListener(valueEventListener);
+            }
+        };
+        activeDriverRef.addListenerForSingleValueEvent(valueEventListener);
     }
 
     private void updateActivePassenger(final Dialog dialog, final ActivePassengers passenger) {

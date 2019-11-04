@@ -15,6 +15,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 import com.juw.areebamansoor.enroutetogether.DriverActivity;
 import com.juw.areebamansoor.enroutetogether.R;
 import com.juw.areebamansoor.enroutetogether.adapters.OfferRidesAdapter;
@@ -22,12 +28,6 @@ import com.juw.areebamansoor.enroutetogether.databinding.FragmentOfferRidesBindi
 import com.juw.areebamansoor.enroutetogether.model.ActiveDrivers;
 import com.juw.areebamansoor.enroutetogether.model.User;
 import com.juw.areebamansoor.enroutetogether.utils.SharedPreferencHandler;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,52 +71,61 @@ public class FragmentOfferRides extends Fragment {
     }
 
     public void onClickItem(final ActiveDrivers activeDrivers) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setMessage("Do you want to?")
-                .setPositiveButton("Show", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, final int id) {
-                        Intent intent = new Intent(getActivity(), DriverActivity.class);
-                        intent.putExtra("Job", new Gson().toJson(activeDrivers));
-                        startActivity(intent);
-                        getActivity().finish();
-                    }
-                })
-                .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(activeDrivers.getDriverDetails().getUserId());
-                        valueEventListener = new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                currentRideRef.removeEventListener(valueEventListener);
-                                for (DataSnapshot data : dataSnapshot.getChildren()) {
 
-                                    ActiveDrivers mCurrentRide = data.getValue(ActiveDrivers.class);
-                                    if (mCurrentRide != null) {
-                                        if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activeDrivers.getTimeStamp()))
-                                            currentRideRef.child(data.getKey()).removeValue();
+        if (activeDrivers.getAcceptedPassengers() != null && !activeDrivers.getAcceptedPassengers().equalsIgnoreCase("")) {
+            Intent intent = new Intent(getActivity(), DriverActivity.class);
+            intent.putExtra("Job", new Gson().toJson(activeDrivers));
+            startActivity(intent);
+            getActivity().finish();
+        } else {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setMessage("Do you want to?")
+                    .setPositiveButton("Show", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, final int id) {
+                            Intent intent = new Intent(getActivity(), DriverActivity.class);
+                            intent.putExtra("Job", new Gson().toJson(activeDrivers));
+                            startActivity(intent);
+                            getActivity().finish();
+                        }
+                    })
+                    .setNegativeButton("Cancel Ride", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            final DatabaseReference currentRideRef = FirebaseDatabase.getInstance().getReference(ACTIVE_DRIVERS).child(activeDrivers.getDriverDetails().getUserId());
+                            valueEventListener = new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    currentRideRef.removeEventListener(valueEventListener);
+                                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+
+                                        ActiveDrivers mCurrentRide = data.getValue(ActiveDrivers.class);
+                                        if (mCurrentRide != null) {
+                                            if (mCurrentRide.getTimeStamp().equalsIgnoreCase(activeDrivers.getTimeStamp()))
+                                                currentRideRef.child(data.getKey()).removeValue();
+                                        }
                                     }
+
+                                    SharedPreferencHandler.setHasPendingOfferRide(false);
+                                    activeDriversList.remove(activeDrivers);
+                                    adapter.notifyDataSetChanged();
                                 }
 
-                                SharedPreferencHandler.setHasPendingOfferRide(false);
-                                activeDriversList.remove(activeDrivers);
-                                adapter.notifyDataSetChanged();
-                            }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    currentRideRef.removeEventListener(valueEventListener);
+                                }
+                            };
+                            currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
+                            dialog.dismiss();
+                            getMyOfferRides();
+                        }
+                    });
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                currentRideRef.removeEventListener(valueEventListener);
-                            }
-                        };
-                        currentRideRef.limitToLast(1).addListenerForSingleValueEvent(valueEventListener);
-                        dialog.dismiss();
-                        getMyOfferRides();
-                    }
-                });
+            final AlertDialog alert = builder.create();
+            alert.show();
+        }
 
-        final AlertDialog alert = builder.create();
-        alert.show();
     }
 
     private void getMyOfferRides() {

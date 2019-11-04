@@ -15,14 +15,17 @@
         <item
             android:id="@+id/action_settings"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="Settings" />
+            android:title="Settings"
+            android:visible="false" />
         <item
             android:id="@+id/logout"
             android:icon="@drawable/ic_power_settings_new_black_24dp"
             android:title="Logout" />
     </group>
 
-    <item android:title="Communicate">
+    <item
+        android:title="Communicate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/help"
