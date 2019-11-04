@@ -13,7 +13,41 @@
           "package_name": "com.example.areebamansoor.enroutetogether"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "108302685978-cbtf994k601iir9aldur72nccfs43jhb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOPy1h9_js84_PEfcgSVRJF7M8L_IZ1os"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "108302685978-cbtf994k601iir9aldur72nccfs43jhb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:108302685978:android:efe12277aeb40a6690fea3",
+        "android_client_info": {
+          "package_name": "com.juw.areebamansoor.enroutetogether"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "108302685978-cbtf994k601iir9aldur72nccfs43jhb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBOPy1h9_js84_PEfcgSVRJF7M8L_IZ1os"

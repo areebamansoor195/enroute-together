@@ -34,7 +34,7 @@
             android:backgroundTint="@color/colorWhite"
             android:ems="10"
             android:hint="Enter your email"
-            android:inputType="textPersonName"
+            android:inputType="textEmailAddress"
             android:textColor="@color/colorWhite"
             android:textColorHint="@color/colorWhite"
             android:textSize="17sp" />
@@ -54,7 +54,7 @@
             android:textColorHint="@color/colorWhite"
             android:textSize="17sp" />
 
-        <CheckBox
+       <!-- <CheckBox
             android:id="@+id/remember_pwd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,14 +62,14 @@
             android:layout_marginTop="10dp"
             android:buttonTint="@color/colorWhite"
             android:text="Remember password"
-            android:textColor="@color/colorWhite" />
+            android:textColor="@color/colorWhite" />-->
 
 
         <TextView
             android:id="@+id/forget_pwd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/remember_pwd"
+            android:layout_below="@+id/et_pwd"
             android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:text="Forgot your password?"
