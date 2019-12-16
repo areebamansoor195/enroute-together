@@ -7,24 +7,31 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+import com.isapanah.awesomespinner.AwesomeSpinner;
 import com.juw.areebamansoor.enroutetogether.databinding.ActivityGenSignupformBinding;
 import com.juw.areebamansoor.enroutetogether.firebase.Firebase;
 import com.juw.areebamansoor.enroutetogether.gmail.Gmail;
 import com.juw.areebamansoor.enroutetogether.gmail.SendEmailTask;
 import com.juw.areebamansoor.enroutetogether.model.Register;
 import com.juw.areebamansoor.enroutetogether.model.User;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static com.juw.areebamansoor.enroutetogether.utils.Constants.EMPLOYEE;
+import static com.juw.areebamansoor.enroutetogether.utils.Constants.STUDENT;
 import static com.juw.areebamansoor.enroutetogether.utils.Constants.USERS;
 
 public class Gen_SignupForm extends AppCompatActivity {
@@ -34,12 +41,27 @@ public class Gen_SignupForm extends AppCompatActivity {
     private String gender = "";
     private ProgressDialog progressDialog;
     private ValueEventListener valueEventListener;
+    private DatabaseReference databaseReference;
+
+    public static boolean isValidEmail(CharSequence target) {
+        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_gen_signupform);
 
+        binding.userType.setHintTextColor(getResources().getColor(R.color.colorWhite));
+        binding.userType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                Arrays.asList(getResources().getStringArray(R.array.user_types))));
+
+        binding.userType.setOnSpinnerItemClickListener(new AwesomeSpinner.onSpinnerItemClickListener<String>() {
+            @Override
+            public void onItemSelected(int position, String itemAtPosition) {
+
+            }
+        });
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Please wait...");
@@ -78,13 +100,66 @@ public class Gen_SignupForm extends AppCompatActivity {
                     Toast.makeText(Gen_SignupForm.this, "Password should be 4 characters long", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                createUser();
+
+                if (binding.userType.getSelectedItem() == null) {
+                    Toast.makeText(Gen_SignupForm.this, "Please select user type", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                verifyUser();
+
             }
         });
     }
 
-    public static boolean isValidEmail(CharSequence target) {
-        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
+    private void verifyUser() {
+
+        try {
+
+            final String user_type = binding.userType.getSelectedItem() + "";
+
+            progressDialog.show();
+
+            valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    progressDialog.dismiss();
+
+                    if (user_type.equalsIgnoreCase("Student"))
+                        Firebase.getInstance().mDatabase.child(STUDENT).removeEventListener(valueEventListener);
+                    else
+                        Firebase.getInstance().mDatabase.child(EMPLOYEE).removeEventListener(valueEventListener);
+
+                    for (DataSnapshot user : dataSnapshot.getChildren()) {
+                        Log.e("Signup", user.getKey() + "");
+                        if (user.getKey().equalsIgnoreCase(binding.etId.getText().toString())) {
+                            createUser();
+                            return;
+                        }
+                    }
+
+                    Toast.makeText(Gen_SignupForm.this, "Please enter valid organization id", Toast.LENGTH_SHORT).show();
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    if (user_type.equalsIgnoreCase("Student"))
+                        Firebase.getInstance().mDatabase.child(STUDENT).removeEventListener(valueEventListener);
+                    else
+                        Firebase.getInstance().mDatabase.child(EMPLOYEE).removeEventListener(valueEventListener);
+                    progressDialog.dismiss();
+                }
+            };
+
+            if (user_type.equalsIgnoreCase("Student"))
+                Firebase.getInstance().mDatabase.child(STUDENT).addValueEventListener(valueEventListener);
+            else
+                Firebase.getInstance().mDatabase.child(EMPLOYEE).addValueEventListener(valueEventListener);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void createUser() {

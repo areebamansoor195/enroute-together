@@ -37,6 +37,12 @@
         <item>Other</item>
     </string-array>
 
+    <string name="user_types">Select User Type</string>
+    <string-array name="user_types">
+        <item>Student</item>
+        <item>Employee</item>
+    </string-array>
+
     <string name="color_prompt">Select Color</string>
     <string-array name="vehicle_colors">
         <item>White</item>

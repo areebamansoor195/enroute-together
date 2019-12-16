@@ -19,6 +19,8 @@ public class Constants {
     public static final String ON_JOB = "ON_JOB";
 
     //Firebase TABLES
+    public static final String STUDENT= "Students";
+    public static final String EMPLOYEE = "Employees";
     public static final String USERS = "Users";
     public static final String VEHICLE = "Vehicle";
     public static final String ACTIVE_DRIVERS = "ActiveDrivers";
